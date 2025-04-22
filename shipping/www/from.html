@@ -1,0 +1,270 @@
+<!-- This HTML file is part of the Shipping application for ERPNext.
+It provides a form for users to update the workflow state of a shipping consignment.
+The form includes fields for ID, customer name, current status, and next status.
+The form is styled with CSS and includes JavaScript for dynamic behavior.
+The script fetches the current state and next states from the server and updates the form accordingly.
+The form submission updates the workflow state and displays a thank you message.
+The script also handles user login and redirects to the appropriate page based on the user's session.
+The HTML structure includes a container for the form, input fields, and buttons.
+The form is designed to be user-friendly and responsive, with clear labels and instructions.             -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .logo {
+            display: block;
+            margin: 20px auto;
+            width: 100px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .hidden {
+            display: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        #thankYou {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #thankYou h2 {
+            color: #28a745;
+        }
+    </style>
+    <script>
+
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        document.addEventListener("DOMContentLoaded", async function() {
+            const sid = localStorage.getItem("sid");
+            if (!sid) {
+                window.location.href = "log?id="+getQueryParams().id;
+                return;
+            }
+
+            const params = getQueryParams();
+            if (params.id) {
+                document.getElementById("id").value = params.id;
+
+                const response = await fetch(`/api/method/shipping.www.action_data.get_workflow_state?consignment_note_id=${params.id}`, {
+                    headers: { "Cookie": `sid=${sid}` }
+                });
+
+                const result = await response.json();
+                if (result.message) {
+                    document.getElementById("action").value = result.message.current_state;
+                    document.getElementById("customer_name").value = result.message.customer_name;
+                    
+                    const locationField = document.getElementById("location");
+                    try {
+                        const apiKey = "dda23c30773142718c67fb2cca5c4c6c";
+                        const locationResponse = await fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${apiKey}`);
+                        const locationData = await locationResponse.json();
+
+                        if (locationData && locationData.city && locationData.country) {
+                            locationField.value = `${locationData.city.name}, ${locationData.country.name}, ${locationData.state.name}`;
+                        } else {
+                            locationField.value = "Location not available";
+                        }
+                    } catch (error) {
+                        console.error("Error fetching location data:", error);
+                        locationField.value = "Error fetching location";
+                    }
+                    document.getElementById("location").value = locationField.value;
+
+                    const nextActionSelect = document.getElementById("next_action");
+                    nextActionSelect.innerHTML = ""; 
+
+                    let defaultOption = document.createElement("option");
+                    defaultOption.value = "";
+                    defaultOption.textContent = "Select Next Status";
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    nextActionSelect.appendChild(defaultOption);
+
+                    if (result.message.next_states && result.message.next_states.length > 0) {
+                        result.message.next_states.forEach(state => {
+                            let option = document.createElement("option");
+                            option.value = state;
+                            option.textContent = state;
+                            nextActionSelect.appendChild(option);
+                        });
+
+                        document.getElementById("changeStateBtn").classList.remove("hidden");
+                    }
+                }
+            }
+        });
+
+        function showStateSelection() {
+            document.getElementById("next_action_label").classList.remove("hidden");
+            document.getElementById("next_action").classList.remove("hidden");
+            document.getElementById("submitBtn").classList.remove("hidden");
+            document.getElementById("changeStateBtn").classList.add("hidden");
+        }
+
+        async function updateWorkflowState(event) {
+            event.preventDefault();
+            const id = document.getElementById("id").value;
+            const newState = document.getElementById("next_action").value;
+            const sid = localStorage.getItem("sid");
+            const loc = document.getElementById("location").value;
+            if (!newState) {
+                alert("Please select a next status.");
+                return;
+            }
+            fetch(`/api/method/shipping.www.action_data.update_workflow_state`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ consignment_note_id: id,new_state: newState,location:loc})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response:", data);
+                if (data.message.status === "success") {
+                    document.getElementById("shippingForm").style.display = "none";
+                document.getElementById("thankYou").style.display = "block";
+                    setTimeout(() => {
+                        window.location.href = "https://adv.anantdv.com/log";
+                    }, 3000);
+                } else {
+                    alert("Failed to update workflow state.");
+                }
+            });
+            // const response = await fetch(`/api/method/shipping.www.action_data.update_workflow_state`, {
+            //     method: "POST",
+            //     headers: {
+            //         "Content-Type": "application/json",
+            //         "Accept": "application/json"
+            //         // "Cookie": `sid=${sid}`
+            //     },
+            //     body: JSON.stringify({
+            //         consignment_note_id: id,
+            //         new_state: newState,
+            //         // location : location
+            //     })
+            // });
+            // console.log("Response:", response);
+
+            // const result = await response.json();
+
+            // if (result.message.status === "success") {
+            //     document.getElementById("shippingForm").style.display = "none";
+            //     document.getElementById("thankYou").style.display = "block";
+            //     setTimeout(() => {
+            //         window.location.href = "https://adv.anantdv.com/log";
+            //     }, 3000);
+            // } else {
+            //     alert("Failed to update workflow state.");
+            // }
+        }
+    </script>
+</head>
+<body>
+    <div id="container">
+        <img src="assets/erpnext/images/cal_logo2.png" alt="Logo" class="logo">
+        <h2>Shipping Website Application</h2> 
+        
+        <form id="shippingForm" onsubmit="updateWorkflowState(event)">
+            <div class="form-group">
+                <label for="id">ID:</label>
+                <input type="text" id="id" name="id" class="form-control" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="customer_name">Customer Name:</label>
+                <input type="text" id="customer_name" name="customer_name" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" class="form-control" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="action">Current Status:</label>
+                <input type="text" id="action" name="action" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="next_action" id="next_action_label" class="hidden">Next Status:</label>
+                <select id="next_action" name="next_action" class="form-control hidden"></select>
+                <button type="button" id="changeStateBtn" class="btn btn-primary hidden" onclick="showStateSelection()">Change State</button>
+            </div>
+
+            <div class="form-group text-center">
+                <input type="submit" id="submitBtn" value="Submit" class="btn btn-primary hidden">
+            </div>
+        </form>
+
+        <div id="thankYou">
+            <h2>Thank You!</h2>
+            <p>Your workflow state has been successfully updated.</p>
+            <p>Redirecting to the homepage...</p>
+        </div>
+    </div>
+</body>
+</html>

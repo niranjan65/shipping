@@ -1,0 +1,1803 @@
+
+// frappe.ui.form.on('Consignment Note', {
+//     origin_branch: function (frm) {
+//         if (frm.doc.origin_branch == frm.doc.destination_branch) {
+//             frm.set_value('origin_branch', "");
+//             frm.set_value('origin_address', "");
+//             frappe.throw("Origin Branch and Destination Branch can't be the same");
+//         }
+//     },
+//     destination_branch: function (frm) {
+//         if (frm.doc.origin_branch == frm.doc.destination_branch) {
+//             frm.set_value('destination_branch', "");
+//             frm.set_value('destination_address', "");
+//             frappe.throw("Origin Branch and Destination Branch can't be the same");
+//         }
+//     },
+
+//     expected_delivery_date: function(frm) {
+//         if (frm.doc.expected_delivery_date && frm.doc.datetime && frm.doc.expected_delivery_date < frm.doc.datetime) {
+//             frappe.msgprint(__('Expected Date cannot be earlier than Date'));
+//             frm.set_value('expected_delivery_date', '');
+//         }
+//     },
+
+//     value_of_shipment:function(frm){
+//       if(frm.doc.value_of_shipment){
+//         const insuranceValue =(frm.doc.value_of_shipment * 0.03).toFixed(2);
+//         frm.set_value('insurance_value', insuranceValue);
+//       }
+//     },
+
+//     setup: function (frm) {
+//         // frm.calculate_total_weight = function () {
+//         //     let totalWeight = 0;
+//         //     let totalVolume = 0;
+//         //     let totalPieces = 0;
+          
+
+
+//         //     frm.doc.check_shipment_details.forEach(d => {
+//         //         totalWeight += parseFloat(d.piece_weight_kg) || 0;
+//         //         totalVolume += ((parseFloat(d.lengthcm) || 0) * (parseFloat(d.widthcm) || 0) * (parseFloat(d.heightcm) || 0)) / 6000;
+//         //         totalPieces += parseInt(d.pieces_no) || 0; // Ensuring numeric addition
+                
+//         //         // const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
+//         //         // const pieces = parseInt(d.pieces_no) || 0;
+//         //         // const length = parseFloat(d.lengthcm) || 0;
+//         //         // const width = parseFloat(d.widthcm) || 0;
+//         //         // const height = parseFloat(d.heightcm) || 0;
+
+//         //     // finaltotalWeight += pieceWeight * pieces;
+//         //     // finaltotalVolume += (length * width * height * pieces) / 6000;
+
+//         // //    totalWeight += finaltotalWeight;
+//         // //    totalVolume += finaltotalVolume;
+//         // //    totalPieces += pieces;
+
+//         //     });
+    
+//         //     const finalWeight = Math.max(totalWeight, totalVolume);
+           
+//         //     frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2)); // Correct sum of weights
+//         //     frm.set_value('total_number_of_pieces', totalPieces); // Correct sum of pieces
+//         // };
+
+//         frm.calculate_total_weight = function () {
+//             let totalWeight = 0;
+//             let totalVolume = 0;
+//             let totalPieces = 0;
+        
+//             frm.doc.check_shipment_details.forEach(d => {
+//                 const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
+//                 const pieces = parseInt(d.pieces_no) || 0;
+//                 const length = parseFloat(d.lengthcm) || 0;
+//                 const width = parseFloat(d.widthcm) || 0;
+//                 const height = parseFloat(d.heightcm) || 0;
+        
+//                 totalWeight += pieceWeight * pieces;
+//                 totalVolume += (length * width * height * pieces) / 6000;
+//                 totalPieces += pieces;
+//             });
+        
+//             const finalWeight = Math.max(totalWeight, totalVolume);
+        
+//             frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2));
+//             console.log("Pura Weight", frm.doc.total_weight)
+//             frm.set_value('total_number_of_pieces', totalPieces);
+//         };
+        
+
+//         frm.generate_tracking_id = function () {
+//             if (!frm.doc.tracking_id) {
+//                 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+//                 let trackingNumber = '';
+
+//                 for (let i = 0; i < 12; i++) {
+//                     const randomIndex = Math.floor(Math.random() * characters.length);
+//                     trackingNumber += characters[randomIndex];
+//                 }
+
+//                 frm.set_value('tracking_id', trackingNumber);
+//                 frm.set_df_property('tracking_id', 'read_only', 1);
+//             }
+//         };
+        
+//         // Flag to track pickup dialog - defined at setup to persist
+//         frm.pickup_dialog_displayed = false;
+        
+//         // Check localStorage to see if we've already marked this consignment as having a pickup
+//         const storedValue = localStorage.getItem(`pickup_scheduled_${frm.doc.name}`);
+//         frm.pickup_scheduled = storedValue === 'true';
+//     },
+
+//     onload: function (frm) {
+//         console.log("ONLOAD............");
+
+//         // Check if document is new and "Shipment Drafted" entry doesn't exist
+//         if (frm.is_new()) {
+//             let shipmentDraftedExists = false;
+
+//             if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+//                 shipmentDraftedExists = frm.doc.tracking_table.some(function (row) {
+//                     return row.status === "Shipment Drafted";
+//                 });
+//             }
+
+//             if (!shipmentDraftedExists) {
+//                 add_tracking_entry_without_save(frm, "Shipment Drafted");
+//             }
+//         }
+        
+//         // Check if pickup has already been scheduled for this document
+//         if (!frm.is_new() && frm.doc.workflow_state === "Assigned for Pickup") {
+//             check_if_pickup_exists(frm);
+//         }
+//     },
+
+//     workflow_state: function (frm) {
+//         console.log("Workflow state changed to:", frm.doc.workflow_state);
+        
+//         // Only update tracking for non-assignment states
+//         if (frm.doc.workflow_state !== "Assigned for Pickup" || frm.doc.workflow_state !== "Picked Up from Airport") {
+//             update_tracking_based_on_workflow(frm);
+//         }
+        
+//        //Accepted check table
+//     //    if (frm.doc.workflow_state === 'Shipment Accepted') {
+//     //     if (!frm.doc.check_shipment_details || frm.doc.check_shipment_details.length === 0) {
+//     //         frappe.throw(__('Check Shipment table is mandatory when the Consignment Note is Accepted'));
+//     //     }
+//     // }
+
+//         // Reset dialog display flag when state changes away from "Assigned for Pickup"
+//         if (frm.doc.workflow_state !== "Assigned for Pickup") {
+//             frm.pickup_dialog_displayed = false;
+//             frm.pickup_scheduled = false;
+//         } else if (frm.doc.workflow_state === "Assigned for Pickup") {
+//             // Check if pickup has already been scheduled
+//             check_if_pickup_exists(frm);
+//         }
+
+//         if (frm.doc.workflow_state !== "Picked Up from Airport") {
+//             frm.pickup_dialog_displayed = false;
+//             frm.pickup_scheduled = false;
+//         } else if (frm.doc.workflow_state === "Picked Up from Airport") {
+//             // handle_picked_up_from_airport_dialog(frm);
+//             // Check if pickup has already been scheduled
+//             check_if_pickup_exists(frm);
+//         }
+//     },
+
+//     recheck_shipment_details: function (frm) {
+//         frm.generate_tracking_id();
+//     },
+
+//     origin: function (frm) {
+//         frm.set_query('origin_branch', () => {
+//             return {
+//                 filters: {
+//                     location: frm.doc.origin
+//                 }
+//             }
+//         });
+
+//         frm.set_query('origin_address', () => {
+//             return {
+//                 filters: {
+//                     city: frm.doc.origin
+//                 }
+//             }
+//         });
+
+//         frappe.call({
+//             method:"frappe.client.get_list",
+//             args:{
+//                 doctype:"Customer Branch",
+//                 filters: {
+//                     location: frm.doc.origin
+//                 },
+//                 fieldname:['*']
+//             },
+//             callback: function(r){
+//                 console.log("Calling Branch",r)
+//                 if(r.message.length > 0){
+//                     frm.set_df_property('origin_branch', 'reqd', 1);
+//                     frm.set_df_property('origin_address', 'reqd', 1);     
+//                } else {
+//                     frm.set_df_property('origin_branch', 'reqd', 0);
+//                     frm.set_df_property('origin_address', 'reqd', 0);
+//                }
+//             }
+//         })
+
+
+//         console.log("Origin ", frm.doc.origin)
+//     },
+
+//     before_save: function (frm) {
+//         update_service_type_feature(frm);
+//     },
+
+//     destination: function (frm) {
+//         frm.set_query('destination_branch', () => {
+//             return {
+//                 filters: {
+//                     location: frm.doc.destination
+//                 }
+//             }
+//         });
+
+//         frm.set_query('destination_address', () => {
+//             return {
+//                 filters: {
+//                     city: frm.doc.destination
+//                 }
+//             }
+//         });
+
+//         frm.set_value('receiving_city', frm.doc.destination);
+//         frappe.call({
+//             method:"frappe.client.get_list",
+//             args:{
+//                 doctype:"Customer Branch",
+//                 filters: {
+//                     location: frm.doc.destination
+//                 },
+//                 fieldname:['*']
+//             },
+//             callback: function(r){
+//                 console.log("Calling Branch",r)
+//                 if(r.message.length > 0){
+//                     frm.set_df_property('destination_branch', 'reqd', 1);
+//                     frm.set_df_property('destination_address', 'reqd', 1);      
+//                } else {
+//                     frm.set_df_property('destination_branch', 'reqd', 0);
+//                     frm.set_df_property('destination_address', 'reqd', 0);
+//                }
+//             }
+//         })
+
+//     },
+
+//     service_type: function (frm) {
+//         update_service_type_feature(frm);
+//     },
+
+//     refresh: function (frm) {
+//         frm.generate_tracking_id();
+//         update_service_type_feature(frm);
+        
+
+//         // if (frm.doc.workflow_state === 'Shipment Accepted') {
+//         //     // Make the child table grid mandatory
+//         //     frm.set_df_property('check_shipment_details', 'reqd', 1);
+//         // }
+
+//         // Check for workflows that don't involve assignment dialog
+//         if(frm.doc.workflow_state === "Delivered To Customer"){
+//             console.log(123)
+//             generate_sales_invoice(frm);
+//         }
+//         if (frm.doc.workflow_state !== "Assigned for Pickup") {
+//             update_tracking_based_on_workflow(frm);
+//         } else {
+//             // If in "Assigned for Pickup" state, always check if a pickup schedule exists
+//             // This needs to happen on every refresh to handle page reloads
+//             check_if_pickup_exists(frm);
+//         }
+
+//         if(frm.doc.workflow_state === "Picked Up from Airport"){
+//             handle_picked_up_from_airport_dialog(frm);
+//         }
+
+
+        
+//         // Handle Invoice button
+        // if (!frm.is_new()) {
+        //     frappe.call({
+        //         method: "frappe.client.get_value",
+        //         args: {
+        //             doctype: "Sales Invoice",
+        //             filters: {
+        //                 air_way_bill: frm.doc.name
+        //             },
+        //             fieldname: ["name"]
+        //         },
+        //         callback: function (r) {
+        //             if (r.message && r.message.name) {
+        //                 frm.add_custom_button('Generate Invoice', function () {
+        //                     frappe.msgprint(
+        //                         `Invoice is already generated for this consignment. 
+        //                         Invoice Number: <a href="http://adv.anantdv.com/app/sales-invoice/${r.message.name}" target="_blank">${r.message.name}</a>`
+        //                     );
+        //                 }, 'Create');
+        //             } else {
+        //                 frm.add_custom_button('Generate Invoice', function () {
+        //                     frm.calculate_total_weight();
+        //                     // generate_sales_invoice(frm);
+        //                 }, 'Create');
+        //             }
+        //         }
+        //     });
+            
+        //     // Special handling for "Assigned for Pickup" state
+        //     // Only show dialog after we've checked if pickup exists (handled asynchronously)
+        //     if (frm.doc.workflow_state === "Assigned for Pickup") {
+        //         // We'll show the dialog in the callback of check_if_pickup_exists if needed
+        //         // This ensures we have the latest pickup_scheduled state
+        //     }
+        // }
+    // }
+// });
+
+// // Function to check if a pickup schedule already exists for this consignment
+// function check_if_pickup_exists(frm) {
+//     frappe.call({
+//         method: "frappe.client.get_list",
+//         args: {
+//             doctype: "Pickup-Delivery Schedule",
+//             filters: {
+//                 consignment_id: frm.doc.name
+//             },
+//             fields: ["name", "status"]
+//         },
+//         callback: function (r) {
+//             if (r.message && r.message.length > 0) {
+//                 console.log("Pickup schedule already exists for this consignment:", r.message);
+//                 frm.pickup_scheduled = true;
+//                 // Also set the dialog displayed flag to prevent dialog from showing
+//                 frm.pickup_dialog_displayed = true;
+                
+//                 // Store this information in localStorage to persist across page reloads
+//                 localStorage.setItem(`pickup_scheduled_${frm.doc.name}`, 'true');
+//             } else {
+//                 console.log("No pickup schedule exists for this consignment");
+//                 frm.pickup_scheduled = false;
+//                 localStorage.removeItem(`pickup_scheduled_${frm.doc.name}`);
+                
+//                 // Show dialog if needed
+//                 if (frm.doc.workflow_state === "Assigned for Pickup" && !frm.pickup_dialog_displayed) {
+//                     console.log("Showing pickup dialog after checking database");
+//                     // Set the flag immediately to prevent duplicate dialogs
+//                     frm.pickup_dialog_displayed = true;
+//                     // Display the dialog
+//                     handle_pickup_assignment_dialog(frm);
+//                 }
+
+//                  // Show dialog for pickup from airport if needed
+//                  if (frm.doc.workflow_state === "Picked Up from Airport" && !frm.pickup_dialog_displayed) {
+//                     console.log("Showing pickup dialog after checking database");
+//                     // Set the flag immediately to prevent duplicate dialogs
+//                     frm.pickup_dialog_displayed = true;
+//                     // Display the dialog
+//                     handle_picked_up_from_airport_dialog(frm);
+//                 }
+//             }
+//         }
+//     });
+// }
+
+// // Handle pickup assignment separately
+// function handle_pickup_assignment_dialog(frm) {
+//     console.log("Showing pickup assignment dialog");
+    
+//     let dialog = new frappe.ui.Dialog({
+//         title: __('Assign Pickup-Delivery Schedule'),
+//         fields: [
+//             // {
+//             //     label: __('Origin'),
+//             //     fieldname: 'origin',
+//             //     fieldtype: 'Link',
+//             //     options: 'Location',
+//             //     default: frm.doc.origin || '',
+//             // },
+//             // {
+//             //     label: __('Pickup Branch'),
+//             //     fieldname: 'pickup_branch',
+//             //     fieldtype: 'Link',
+//             //     options: 'Branch',
+//             //     default: frm.doc.pickup_branch || '',
+//             // },
+//             // {
+//             //     label: __('Pickup Address'),
+//             //     fieldname: 'pickup_address',
+//             //     fieldtype: 'Link',
+//             //     options: 'Address',
+//             //     default: frm.doc.pickup_address || '',
+//             // },
+//             {
+//                 label: __('Pickup DateTime'),
+//                 fieldname: 'datetime',
+//                 fieldtype: 'Datetime',
+//                 // options: 'Address',
+//                 // default: frm.doc.pickup_address || '',
+//             },
+//             {
+//                 label:__('Priority'),
+//                 fieldname: "priority",
+//                 fieldtype: "Select",
+//                 options: "Low\nMedium\nHigh",
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Delivery Branch'),
+//                 fieldname: 'delivery_branch',
+//                 fieldtype: 'Link',
+//                 options: 'Branch',
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Assign To'),
+//                 fieldname: 'assigned_to',
+//                 fieldtype: 'Link',
+//                 options: 'User',
+//                 reqd: 1
+//             },
+//         ],
+//         primary_action_label: __('Assign'),
+//         primary_action: function(values) {
+//             // First create a tracking entry
+//             let assigned_to_email = values.assigned_to;
+            
+//             // Check if this assignment already exists
+//             let assignmentExists = false;
+//             if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+//                 assignmentExists = frm.doc.tracking_table.some(function(row) {
+//                     return row.status === "Assigned for Pickup" && 
+//                            row.assigned_to === assigned_to_email;
+//                 });
+//             }
+            
+//             if (!assignmentExists) {
+//                 // Create new tracking entry with assigned_to value
+//                 let new_row = frm.add_child("tracking_table");
+//                 new_row.status = "Assigned for Pickup";
+//                 new_row.timestamp = frappe.datetime.now_datetime();
+//                 new_row.assigned_to = assigned_to_email;
+//                 frm.refresh_field("tracking_table");
+//             }
+            
+//             // Then create pickup-delivery document
+//             let new_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
+//             console.log("workflow_state", frm.doc.workflow_state);
+//             new_doc.status = frm.doc.workflow_state;
+//             new_doc.assigned_to = assigned_to_email;
+//             new_doc.origin = frm.doc.origin;
+//             new_doc.destination = frm.doc.destination;
+//             new_doc.pickup_branch = frm.doc.origin_branch;
+//             new_doc.pickup_address = frm.doc.origin_address
+//             new_doc.datetime = values.datetime;
+//             new_doc.priority = values.priority;
+//             new_doc.company_branch = values.delivery_branch;
+//             // new_doc.pickup_address = values.pickup_address;
+//             new_doc.consignment_id = frm.doc.name;
+//             // Do not set status explicitly - let the system handle it
+
+//             frappe.db.insert(new_doc)
+//             .then(() => {
+//                 console.log("Pickup-Delivery Schedule created");
+                
+//                 // Set pickup scheduled flag to true to prevent dialog from showing again
+//                 frm.pickup_scheduled = true;
+                
+//                 // Store this in localStorage to persist across page reloads
+//                 localStorage.setItem(`pickup_scheduled_${frm.doc.name}`, 'true');
+                
+//                 // Save the form to ensure tracking table is updated
+//                 frm.save().then(() => {
+//                     frm.reload_doc();
+//                     frappe.show_alert({
+//                         message: __('Assignment completed successfully'),
+//                         indicator: 'green'
+//                     });
+//                 });
+                
+//                 dialog.hide();
+//             })
+//             .catch(err => {
+//                 console.log("Error", err);
+//                 frappe.show_alert({
+//                     message: __('Error creating assignment: ' + err.message),
+//                     indicator: 'red'
+//                 });
+//             });
+//         },
+//         onhide: function() {
+//             // If dialog is closed without action, reset the display flag
+//             // but NOT the scheduled flag since we want to prevent reopening
+//             if (frm.doc.workflow_state === "Assigned for Pickup") {
+//                 setTimeout(() => {
+//                     frm.pickup_dialog_displayed = false;
+//                     // We don't reset pickup_scheduled here because we want to
+//                     // maintain that state even if the dialog is dismissed
+//                 }, 1000);
+//             }
+//         }
+//     });
+    
+//     dialog.show();
+// }
+
+// function handle_picked_up_from_airport_dialog(frm) {
+//     console.log("Showing pickup assignment dialog");
+    
+//     let dialog = new frappe.ui.Dialog({
+//         title: __('Pick Up From Airport'),
+//         fields: [
+//          {
+//                 label: __('Pickup DateTime'),
+//                 fieldname: 'datetime',
+//                 fieldtype: 'Datetime',
+//                 reqd: 1,
+//                 // options: 'Address',
+//                 // default: frm.doc.pickup_address || '',
+//             },
+//             {
+//                 label:__('Priority'),
+//                 fieldname: "priority",
+//                 fieldtype: "Select",
+//                 options: "Low\nMedium\nHigh",
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Drop Off Branch'),
+//                 fieldname: 'delivery_branch',
+//                 fieldtype: 'Link',
+//                 options: 'Branch',
+//                 reqd: 1
+//             },
+//             {
+//                 label: __('Assign To'),
+//                 fieldname: 'assigned_to',
+//                 fieldtype: 'Link',
+//                 options: 'User',
+//                 reqd: 1
+//             },
+//         ],
+//         primary_action_label: __('Assign'),
+//         primary_action: function(values) {
+//             // First create a tracking entry
+//             let assigned_to_email = values.assigned_to;
+            
+//             // Check if this assignment already exists
+//             let assignmentExists = false;
+//             if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+//                 assignmentExists = frm.doc.tracking_table.some(function(row) {
+//                     return row.status === "Picked Up from Airport" && 
+//                            row.assigned_to === assigned_to_email;
+//                 });
+//             }
+            
+//             if (!assignmentExists) {
+//                 // Create new tracking entry with assigned_to value
+//                 let new_row = frm.add_child("tracking_table");
+//                 new_row.status = "Picked Up From Airport";
+//                 new_row.timestamp = frappe.datetime.now_datetime();
+//                 new_row.assigned_to = assigned_to_email;
+//                 frm.refresh_field("tracking_table");
+//             }
+            
+//             // Then create pickup-delivery document
+//             let new_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
+//             console.log("workflow_state", frm.doc.workflow_state);
+//             new_doc.status = frm.doc.workflow_state;
+//             new_doc.assigned_to = assigned_to_email;
+//             new_doc.origin = frm.doc.origin;
+//             new_doc.destination = frm.doc.destination;
+//             new_doc.pickup_branch = frm.doc.origin_branch;
+//             new_doc.pickup_address = frm.doc.origin_address
+//             new_doc.datetime = values.datetime;
+//             new_doc.priority = values.priority;
+//             new_doc.company_branch = values.delivery_branch;
+//             // new_doc.pickup_address = values.pickup_address;
+//             new_doc.consignment_id = frm.doc.name;
+//             // Do not set status explicitly - let the system handle it
+
+//             frappe.db.insert(new_doc)
+//             .then(() => {
+//                 console.log("Pickup-Delivery Schedule created");
+                
+//                 // Set pickup scheduled flag to true to prevent dialog from showing again
+//                 frm.pickup_scheduled = true;
+                
+//                 // Store this in localStorage to persist across page reloads
+//                 localStorage.setItem(`pickup_scheduled_${frm.doc.name}`, 'true');
+                
+//                 // Save the form to ensure tracking table is updated
+//                 frm.save().then(() => {
+//                     frm.reload_doc();
+//                     frappe.show_alert({
+//                         message: __('Assignment completed successfully'),
+//                         indicator: 'green'
+//                     });
+//                 });
+                
+//                 dialog.hide();
+//             })
+//             .catch(err => {
+//                 console.log("Error", err);
+//                 frappe.show_alert({
+//                     message: __('Error creating assignment: ' + err.message),
+//                     indicator: 'red'
+//                 });
+//             });
+//         },
+//         onhide: function() {
+//             // If dialog is closed without action, reset the display flag
+//             // but NOT the scheduled flag since we want to prevent reopening
+//             if (frm.doc.workflow_state === "Picked Up from Airport") {
+//                 setTimeout(() => {
+//                     frm.pickup_dialog_displayed = false;
+//                     // We don't reset pickup_scheduled here because we want to
+//                     // maintain that state even if the dialog is dismissed
+//                 }, 1000);
+//             }
+//         }
+//     });
+    
+//     dialog.show();
+// }
+
+// frappe.ui.form.on('Shipment_item', {
+//     piece_weight_kg: function (frm) {
+//         frm.calculate_total_weight();
+//     },
+//     lengthcm: function (frm) {
+//         frm.calculate_total_weight();
+//     },
+//     widthcm: function (frm) {
+//         frm.calculate_total_weight();
+//     },
+//     heightcm: function (frm) {
+//         frm.calculate_total_weight();
+//     },
+//     pieces_no: function (frm) {
+//         frm.calculate_total_weight();
+//     }
+// });
+
+// function update_tracking_based_on_workflow(frm) {
+//     if (!frm.doc.workflow_state) return;
+
+//     const currentState = frm.doc.workflow_state;
+    
+//     // Skip "Assigned for Pickup" as that's handled separately with user input
+//     if (currentState === "Assigned for Pickup") {
+//         return;
+//     }
+    
+//     // Check if tracking entry for current state already exists
+//     let statusEntryExists = false;
+    
+//     if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+//         statusEntryExists = frm.doc.tracking_table.some(function (row) {
+//             return row.status === currentState;
+//         });
+//     }
+
+//     // If entry doesn't exist, add it
+//     if (!statusEntryExists) {
+//         add_tracking_entry_without_save(frm, currentState);
+        
+//         // Save if not a new document
+//         if (!frm.is_new()) {
+//             frm.save();
+//         }
+//     }
+// }
+
+// // New function that adds tracking entry without saving
+// function add_tracking_entry_without_save(frm, status, assigned_to = "") {
+//     let new_row = frm.add_child("tracking_table");
+//     new_row.status = status;
+//     new_row.timestamp = frappe.datetime.now_datetime();
+    
+//     if (assigned_to && assigned_to.trim() !== "") {
+//         new_row.assigned_to = assigned_to;
+//     }
+
+//     frm.refresh_field("tracking_table");
+// }
+
+// // Original function that includes save - ONLY use when you want to save immediately
+// function add_tracking_entry(frm, status, assigned_to = "") {
+//     add_tracking_entry_without_save(frm, status, assigned_to);
+//     frm.save();
+// }
+
+// function update_service_type_feature(frm) {
+//     let mapping = {
+//         "General Air Cargo": "Highly Valuable Goods",
+//         "DG Air Cargo": "Lithium-Ion Batteries (Class 9)"
+//     };
+
+//     if (frm.doc.service_type in mapping) {
+//         frm.set_value('service_type_feature', mapping[frm.doc.service_type]);
+
+//         if (frm.doc.service_type === "General Air Cargo") {
+//             frm.set_df_property('service_type_feature', 'read_only', 1);
+//         } else {
+//             frm.set_df_property('service_type_feature', 'read_only', 0);
+//         }
+//     } else {
+//         frm.set_value('service_type_feature', '');
+//     }
+
+//     frm.refresh_field('service_type_feature');
+// }
+
+// function generate_sales_invoice(frm) {
+// //     frappe.call({
+// //         method: "frappe.client.get_value",
+// //         args: {
+// //             doctype: "Consignment Note",
+// //             filters: { name: frm.doc.name },
+// //             fieldname: "sales_invoice"
+// //         },
+// //         callback: function (r) {
+// //             if (r.message && r.message.sales_invoice) {
+// //                 // frappe.msgprint(`Sales Invoice already exists: <a href="/app/sales-invoice/${r.message.sales_invoice}" target="_blank">${r.message.sales_invoice}</a>`);
+// //             } else {
+// //                 frappe.call({
+// //                     method: 'shipping.shipping.doctype.consignment_note.make_sales_invoice.make_invoice',
+// //                     args: {
+// //                         data: frm.doc
+// //                     },
+// //                     freeze: true,
+// //                     callback: (r) => {
+// //                         if (r.message && r.message.sales_invoice_name) {
+// //                             frappe.msgprint(`Sales Invoice ${r.message.sales_invoice_name} created successfully.`);
+// //                             // frm.reload_doc(); 
+// //                         }
+// //                     },
+// //                     error: (r) => {
+// //                         console.log(r);
+// //                     }
+// //                 });
+// //             }
+// //         }
+// //     });
+
+// // call with all options
+//     // frappe.call({
+//     //     method: 'shipping.shipping.doctype.consignment_note.make_sales_invoice.make_invoice',
+//     //     args: {
+//     //         data: frm.doc
+//     //     },
+//     //     freeze: true,
+//     //     callback: (r) => {
+//     //         console.log(r);
+//     //         // frappe.msgprint(`Sales Invoice ${r.message.sales_invoice_name} created successfully.`);
+//     //     },
+//     //     error: (r) => {
+//     //         console.log(r);
+//     //     }
+//     //    })
+
+
+//     frappe.model.with_doctype("Sales Invoice", function () {
+//         let si = frappe.model.get_new_doc("Sales Invoice");
+
+//         si.customer = frm.doc.customer_name;
+//         si.company = "Carpenters Air Logistics";
+//         si.origin = frm.doc.origin;
+//         si.destination = frm.doc.destination;
+//         si.total_weight = frm.doc.total_weight;
+//         si.air_way_bill = frm.doc.name;
+
+//         frappe.call({
+//             method: "frappe.client.get_value",
+//             args: {
+//                 doctype: "Origin Destination Map",
+//                 filters: { origin: frm.doc.origin, destination: frm.doc.destination },
+//                 fieldname: "code"
+//             },
+//             callback: async function (od_data) {
+//                 console.log("SIIIIIIIIII", od_data);
+//                 let origin_dest_code = od_data.message ? od_data.message.code : null;
+//                 let rc = await frappe.db.get_doc("Rate Chart", "Rate Chart 1");
+//                 let rate = 0;
+
+//                 if (frm.doc.total_weight < 5) {
+//                     rc.rate_chart.forEach(item => {
+//                         if (item.area_code == "0") {
+//                             if (frm.doc.customer_type === "Cash") {
+//                                 rate = item.cash_rate;
+//                                 console.log("Cash Rate", rate)
+//                             }
+//                             if (frm.doc.customer_type === "Corporate") {
+//                                 rate = item.corporate_rate;
+//                             }
+//                         }
+//                     });
+//                 } else {
+//                     rc.rate_chart.forEach(item => {
+//                         if (item.area_code == origin_dest_code) {
+//                             if (frm.doc.customer_type === "Cash") {
+//                                 rate = item.cash_rate * frm.doc.total_weight;
+//                             }
+//                             if (frm.doc.customer_type === "Corporate") {
+//                                 rate = item.corporate_rate * frm.doc.total_weight;
+//                             }
+//                         }
+//                     });
+//                 }
+
+//                 frappe.route_options = {
+//                     rate: rate,
+//                     total_weight: frm.doc.total_weight,
+//                     needsDocFee: frm.doc.total_weight > 5
+//                 };
+
+//                 frappe.set_route("Form", "Sales Invoice", si.name);
+//             }
+//         });
+//     });
+// }
+
+frappe.ui.form.on('Consignment Note', {
+    origin_branch: function (frm) {
+        if (frm.doc.origin_branch == frm.doc.destination_branch) {
+            frm.set_value('origin_branch', "");
+            frm.set_value('origin_address', "");
+            frappe.throw("Origin Branch and Destination Branch can't be the same");
+        }
+    },
+    destination_branch: function (frm) {
+        if (frm.doc.origin_branch == frm.doc.destination_branch) {
+            frm.set_value('destination_branch', "");
+            frm.set_value('destination_address', "");
+            frappe.throw("Origin Branch and Destination Branch can't be the same");
+        }
+    },
+
+    expected_delivery_date: function(frm) {
+        if (frm.doc.expected_delivery_date && frm.doc.datetime && frm.doc.expected_delivery_date < frm.doc.datetime) {
+            frappe.msgprint(__('Expected Date cannot be earlier than Date'));
+            frm.set_value('expected_delivery_date', '');
+        }
+    },
+
+    
+
+    setup: function (frm) {
+        // frm.calculate_total_weight = function () {
+        //     let totalWeight = 0;
+        //     let totalVolume = 0;
+        //     let totalPieces = 0;
+          
+
+
+        //     frm.doc.check_shipment_details.forEach(d => {
+        //         totalWeight += parseFloat(d.piece_weight_kg) || 0;
+        //         totalVolume += ((parseFloat(d.lengthcm) || 0) * (parseFloat(d.widthcm) || 0) * (parseFloat(d.heightcm) || 0)) / 6000;
+        //         totalPieces += parseInt(d.pieces_no) || 0; // Ensuring numeric addition
+                
+        //         // const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
+        //         // const pieces = parseInt(d.pieces_no) || 0;
+        //         // const length = parseFloat(d.lengthcm) || 0;
+        //         // const width = parseFloat(d.widthcm) || 0;
+        //         // const height = parseFloat(d.heightcm) || 0;
+
+        //     // finaltotalWeight += pieceWeight * pieces;
+        //     // finaltotalVolume += (length * width * height * pieces) / 6000;
+
+        // //    totalWeight += finaltotalWeight;
+        // //    totalVolume += finaltotalVolume;
+        // //    totalPieces += pieces;
+
+        //     });
+    
+        //     const finalWeight = Math.max(totalWeight, totalVolume);
+           
+        //     frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2)); // Correct sum of weights
+        //     frm.set_value('total_number_of_pieces', totalPieces); // Correct sum of pieces
+        // };
+
+        frm.calculate_total_weight = function () {
+            let totalWeight = 0;
+            let totalVolume = 0;
+            let totalPieces = 0;
+        
+            frm.doc.check_shipment_details.forEach(d => {
+                const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
+                const pieces = parseInt(d.pieces_no) || 0;
+                const length = parseFloat(d.lengthcm) || 0;
+                const width = parseFloat(d.widthcm) || 0;
+                const height = parseFloat(d.heightcm) || 0;
+        
+                totalWeight += pieceWeight * pieces;
+                totalVolume += (length * width * height * pieces) / 6000;
+                totalPieces += pieces;
+            });
+        
+            const finalWeight = Math.max(totalWeight, totalVolume);
+        
+            frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2));
+            console.log("Pura Weight", frm.doc.total_weight)
+            frm.set_value('total_number_of_pieces', totalPieces);
+        };
+        
+
+        frm.generate_tracking_id = function () {
+            if (!frm.doc.tracking_id) {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let trackingNumber = '';
+
+                for (let i = 0; i < 12; i++) {
+                    const randomIndex = Math.floor(Math.random() * characters.length);
+                    trackingNumber += characters[randomIndex];
+                }
+
+                frm.set_value('tracking_id', trackingNumber);
+                frm.set_df_property('tracking_id', 'read_only', 1);
+            }
+        };
+        
+        // Flag to track dialog display for each workflow state - defined at setup to persist
+        frm.pickup_dialog_displayed = false;
+        frm.airport_dialog_displayed = false;
+        frm.delivery_dialog_displayed = false;
+        
+        // Check localStorage to see if we've already marked this consignment as having schedules
+        const pickupStored = localStorage.getItem(`pickup_scheduled_${frm.doc.name}`);
+        const airportStored = localStorage.getItem(`airport_scheduled_${frm.doc.name}`);
+        const deliveryStored = localStorage.getItem(`delivery_scheduled_${frm.doc.name}`);
+        
+        frm.pickup_scheduled = pickupStored === 'true';
+        frm.airport_scheduled = airportStored === 'true';
+        frm.delivery_scheduled = deliveryStored === 'true';
+    },
+
+    onload: function (frm) {
+        console.log("ONLOAD............");
+
+        // Check if document is new and "Shipment Drafted" entry doesn't exist
+        if (frm.is_new()) {
+            let shipmentDraftedExists = false;
+
+            if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+                shipmentDraftedExists = frm.doc.tracking_table.some(function (row) {
+                    return row.status === "Shipment Drafted";
+                });
+            }
+
+            if (!shipmentDraftedExists) {
+                add_tracking_entry_without_save(frm, "Shipment Drafted");
+            }
+        }
+        
+        // Check if schedule has already been created for the current workflow state
+        if (!frm.is_new()) {
+            if (frm.doc.workflow_state === "Assigned for Pickup") {
+                check_if_schedule_exists(frm, "Assigned for Pickup");
+            } 
+            else if (frm.doc.workflow_state === "Picked Up from Airport") {
+                check_if_schedule_exists(frm, "Picked Up from Airport");
+            }
+            else if (frm.doc.workflow_state === "Delivery Scheduled") {
+                check_if_schedule_exists(frm, "Delivery Scheduled");
+            }
+        }
+    },
+
+    workflow_state: function (frm) {
+        console.log("Workflow state changed to:", frm.doc.workflow_state);
+        
+        // Reset specific flags when workflow state changes
+        if (frm.doc.workflow_state === "Assigned for Pickup") {
+            frm.pickup_dialog_displayed = false;
+            frm.pickup_scheduled = false;
+            localStorage.removeItem(`pickup_scheduled_${frm.doc.name}`);
+            
+            // Use setTimeout to ensure workflow state change is fully processed before showing dialog
+            setTimeout(function() {
+                console.log("Delayed check for schedule after workflow state change");
+                check_if_schedule_exists(frm, "Assigned for Pickup");
+            }, 500);
+        } 
+        else if (frm.doc.workflow_state === "Picked Up from Airport") {
+            frm.airport_dialog_displayed = false;
+            frm.airport_scheduled = false;
+            localStorage.removeItem(`airport_scheduled_${frm.doc.name}`);
+            
+            // Use setTimeout for this state too
+            setTimeout(function() {
+                check_if_schedule_exists(frm, "Picked Up from Airport");
+            }, 500);
+        }
+        else if (frm.doc.workflow_state === "Delivery Scheduled") {
+            frm.delivery_dialog_displayed = false;
+            frm.delivery_scheduled = false;
+            localStorage.removeItem(`delivery_scheduled_${frm.doc.name}`);
+            
+            // Use setTimeout for this state too
+            setTimeout(function() {
+                check_if_schedule_exists(frm, "Delivery Scheduled");
+            }, 500);
+        }
+        else {
+            // For other states, update tracking as before
+            update_tracking_based_on_workflow(frm);
+        }
+    },
+
+    recheck_shipment_details: function (frm) {
+        frm.generate_tracking_id();
+    },
+
+    origin: function (frm) {
+        frm.set_query('origin_branch', () => {
+            return {
+                filters: {
+                    location: frm.doc.origin,
+                    customer_name: frm.doc.customer_name
+                }
+            }
+        });
+    
+        frm.set_query('origin_address', () => {
+            return {
+                filters: {
+                    city: frm.doc.origin
+                }
+            }
+        });
+    
+        frm.set_value('shipping_city', frm.doc.origin);
+    
+        frappe.call({
+            method: "frappe.client.get_list",
+            args: {
+                doctype: "Customer Branch",
+                filters: {
+                    location: frm.doc.origin,
+                    customer_name: frm.doc.customer_name
+                },
+                fieldname: ['*']
+            },
+            callback: function(r) {
+                console.log("Calling Branch", r);
+                console.log("Calling form data", frm);
+                
+                if (frm.doc.customer_type === "Cash") {
+                    frm.set_df_property('origin_branch', 'hidden', 1);
+                    frm.set_df_property('origin_branch', 'reqd', 0);
+                    frm.set_df_property('origin_address', 'reqd', 0);
+                } else if (frm.doc.customer_type === "Corporate") {
+                    frm.set_df_property('origin_branch', 'hidden', 0);
+                    if (r.message.length > 0) {
+                        frm.set_df_property('origin_branch', 'reqd', 1);
+                        frm.set_df_property('origin_address', 'reqd', 1);
+                    } else {
+                        frm.set_df_property('origin_branch', 'reqd', 0);
+                        frm.set_df_property('origin_address', 'reqd', 0);
+                    }
+                }
+            }
+        });
+    
+        console.log("Origin ", frm.doc.origin);
+    },
+
+    before_save: function (frm) {
+        update_service_type_feature(frm);
+    },
+
+    destination: function (frm) {
+        frm.set_query('destination_branch', () => {
+            return {
+                filters: {
+                    location: frm.doc.destination,
+                    customer_name: frm.doc.customer_name
+                }
+            }
+        });
+    
+        frm.set_query('destination_address', () => {
+            return {
+                filters: {
+                    city: frm.doc.destination
+                }
+            }
+        });
+    
+        frm.set_value('receiving_city', frm.doc.destination);
+        
+        frappe.call({
+            method: "frappe.client.get_list",
+            args: {
+                doctype: "Customer Branch",
+                filters: {
+                    location: frm.doc.destination,
+                    customer_name: frm.doc.customer_name
+                },
+                fieldname: ['*']
+            },
+            callback: function(r) {
+                console.log("Calling Branch", r);
+                
+                if (frm.doc.customer_type === "Cash") {
+                    frm.set_df_property('destination_branch', 'hidden', 1);
+                    frm.set_df_property('destination_branch', 'reqd', 0);
+                    frm.set_df_property('destination_address', 'reqd', 0);
+                } else if (frm.doc.customer_type === "Corporate") {
+                    frm.set_df_property('destination_branch', 'hidden', 0);
+                    if (r.message.length > 0) {
+                        console.log("Fetching the destination branch", r.message);
+                        frm.set_df_property('destination_branch', 'reqd', 1);
+                        frm.set_df_property('destination_address', 'reqd', 1);
+                    } else {
+                        frm.set_df_property('destination_branch', 'reqd', 0);
+                        frm.set_df_property('destination_address', 'reqd', 0);
+                    }
+                }
+            }
+        });
+    },
+
+    value_of_shipment: function (frm) {
+        if(frm.doc.value_of_shipment < 500) {
+            frm.set_df_property('proof_of_value', 'reqd', 0);
+            
+        }
+        if(frm.doc.value_of_shipment){
+            const insuranceValue =(frm.doc.value_of_shipment * 0.03).toFixed(2);
+            frm.set_value('insurance_value', insuranceValue);
+          } 
+        if(frm.doc.value_of_shipment > 500) {
+            frm.set_df_property('proof_of_value', 'reqd', 1);
+            
+        } else {
+            frm.set_df_property('proof_of_value', 'reqd', 0);
+        }
+
+        console.log("Value of shipment", frm.doc.value_of_shipment)
+    },
+
+    service_type: function (frm) {
+        update_service_type_feature(frm);
+
+        if(frm.doc.service_type === "DG Air Cargo") {
+            frm.set_df_property('attachment', 'reqd', 1);
+        } else {
+            frm.set_df_property('attachment', 'reqd', 0);
+        }
+    },
+
+    refresh: function (frm) {
+        frm.generate_tracking_id();
+        update_service_type_feature(frm);
+        if(frm.doc.sales_invoice){
+            frm.add_custom_button('View sales invoice', function () {
+                    frappe.msgprint(
+                        `Invoice Number: <a href="http://adv.anantdv.com/app/sales-invoice/${frm.doc.sales_invoice}" target="_blank">${frm.doc.sales_invoice}</a>`
+                    );
+                    // frappe.set_route("Sales Invoive", frm.doc.sales_invoice);
+                },);
+        }
+        if(frm.doc.workflow_state === "Delivered To Customer" && frm.doc.customer_type === "Corporate") {
+            // console.log(123);
+            generate_sales_invoice(frm);
+            // if (!frm.is_new()) {
+            //     frappe.call({
+            //         method: "frappe.client.get_value",
+            //         args: {
+            //             doctype: "Sales Invoice",
+            //             filters: {
+            //                 air_way_bill: frm.doc.name
+            //             },
+            //             fieldname: ["name"]
+            //         },
+            //         callback: function (r) {
+            //             if (r.message && r.message.name) {
+            //                 frm.add_custom_button('Generate Invoice', function () {
+            //                     frappe.msgprint(
+            //                         `Invoice is already generated for this consignment. 
+            //                         Invoice Number: <a href="http://adv.anantdv.com/app/sales-invoice/${r.message.name}" target="_blank">${r.message.name}</a>`
+            //                     );
+            //                 }, 'Create');
+            //             } else {
+            //                 frm.add_custom_button('Generate Invoice', function () {
+            //                     frm.calculate_total_weight();
+            //                     generate_sales_invoice(frm);
+            //                 }, 'Create');
+            //             }
+            //         }
+            //     });
+            // }
+        }
+        if(frm.doc.workflow_state === "Invoice Generated" && frm.doc.customer_type === "Cash") {
+            generate_sales_invoice(frm);
+        }
+        
+        // Check for each dialog-triggering state separately
+        if (frm.doc.workflow_state === "Assigned for Pickup") {
+            check_if_schedule_exists(frm, "Assigned for Pickup");
+        }
+        else if (frm.doc.workflow_state === "Picked Up from Airport") {
+            check_if_schedule_exists(frm, "Picked Up from Airport");
+        }
+        else if (frm.doc.workflow_state === "Delivery Scheduled") {
+            check_if_schedule_exists(frm, "Delivery Scheduled");
+        }
+        else {
+            // For other states, update tracking
+            update_tracking_based_on_workflow(frm);
+        }
+    },
+
+    customer_type: function(frm) {
+        
+        if (frm.doc.customer_type === "Cash") {
+            frm.set_df_property('origin_branch', 'hidden', 1);
+            frm.set_df_property('destination_branch', 'hidden', 1);
+            frm.set_df_property('origin_branch', 'reqd', 0);
+            frm.set_df_property('destination_branch', 'reqd', 0);
+        } else if (frm.doc.customer_type === "Corporate") {
+            frm.set_df_property('origin_branch', 'hidden', 0);
+            frm.set_df_property('destination_branch', 'hidden', 0);
+            
+            
+            if (frm.doc.origin) {
+                frm.trigger('origin');
+            }
+            if (frm.doc.destination) {
+                frm.trigger('destination');
+            }
+        }
+    }
+});
+
+// Updated function to check if schedule exists and show appropriate dialog
+function check_if_schedule_exists(frm, workflowState) {
+    console.log(`Checking if schedule exists for ${workflowState} state`);
+    
+    // Make sure document name is available
+    if (!frm.doc.name || frm.doc.__islocal) {
+        console.log("Document not yet saved, can't check for schedules");
+        // For new/unsaved docs, don't show dialog yet
+        return;
+    }
+    
+    // Determine which flags to use based on the workflow state
+    let dialogDisplayed, scheduleExistsFlag;
+    
+    if (workflowState === "Assigned for Pickup") {
+        dialogDisplayed = frm.pickup_dialog_displayed;
+        scheduleExistsFlag = frm.pickup_scheduled;
+    } else if (workflowState === "Picked Up from Airport") {
+        dialogDisplayed = frm.airport_dialog_displayed;
+        scheduleExistsFlag = frm.airport_scheduled;
+    } else if (workflowState === "Delivery Scheduled") {
+        dialogDisplayed = frm.delivery_dialog_displayed;
+        scheduleExistsFlag = frm.delivery_scheduled;
+    }
+    
+    // Double-check that we are actually in the expected workflow state
+    if (frm.doc.workflow_state !== workflowState) {
+        console.log(`Current workflow state ${frm.doc.workflow_state} doesn't match expected ${workflowState}`);
+        return;
+    }
+    
+    // If we've already shown a dialog or confirmed schedule exists, don't show again
+    if (dialogDisplayed || scheduleExistsFlag) {
+        console.log(`Dialog already displayed or schedule confirmed for ${workflowState}`);
+        return;
+    }
+    
+    // Mark dialog as displayed to prevent multiple dialogs
+    if (workflowState === "Assigned for Pickup") {
+        frm.pickup_dialog_displayed = true;
+    } else if (workflowState === "Picked Up from Airport") {
+        frm.airport_dialog_displayed = true;
+    } else if (workflowState === "Delivery Scheduled") {
+        frm.delivery_dialog_displayed = true;
+    }
+    
+    // Add no_cache parameter to ensure fresh data
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Pickup-Delivery Schedule",
+            filters: {
+                consignment_id: frm.doc.name,
+                status: workflowState
+            },
+            fields: ["name"],
+            no_cache: 1
+        },
+        callback: function (r) {
+            if (r.message && r.message.length > 0) {
+                console.log(`Schedule already exists for ${workflowState} state:`, r.message);
+                
+                // Mark as scheduled to prevent dialog from showing again
+                if (workflowState === "Assigned for Pickup") {
+                    frm.pickup_scheduled = true;
+                    localStorage.setItem(`pickup_scheduled_${frm.doc.name}`, 'true');
+                } else if (workflowState === "Picked Up from Airport") {
+                    frm.airport_scheduled = true;
+                    localStorage.setItem(`airport_scheduled_${frm.doc.name}`, 'true');
+                } else if (workflowState === "Delivery Scheduled") {
+                    frm.delivery_scheduled = true;
+                    localStorage.setItem(`delivery_scheduled_${frm.doc.name}`, 'true');
+                }
+            } else {
+                console.log(`No schedule exists for ${workflowState} state, showing dialog`);
+                
+                // Ensure the document is saved before showing dialog
+                if (frm.is_dirty()) {
+                    frm.save().then(() => {
+                        // Show appropriate dialog after save
+                        show_appropriate_dialog(frm, workflowState);
+                    });
+                } else {
+                    // Document is already saved, show dialog right away
+                    show_appropriate_dialog(frm, workflowState);
+                }
+            }
+        }
+    });
+}
+
+// Helper function to show the right dialog based on workflow state
+function show_appropriate_dialog(frm, workflowState) {
+    if (workflowState === "Assigned for Pickup") {
+        handle_pickup_assignment_dialog(frm);
+    } else if (workflowState === "Picked Up from Airport") {
+        handle_picked_up_from_airport_dialog(frm);
+    } else if (workflowState === "Delivery Scheduled") {
+        handle_delivery_scheduled_dialog(frm);
+    }
+}
+
+frappe.ui.form.on('Shipment_item', {
+    piece_weight_kg: function (frm) {
+        frm.calculate_total_weight();
+    },
+    lengthcm: function (frm) {
+        frm.calculate_total_weight();
+    },
+    widthcm: function (frm) {
+        frm.calculate_total_weight();
+    },
+    heightcm: function (frm) {
+        frm.calculate_total_weight();
+    },
+    pieces_no: function (frm) {
+        frm.calculate_total_weight();
+    }
+});
+
+function update_tracking_based_on_workflow(frm) {
+    if (!frm.doc.workflow_state) return;
+
+    const currentState = frm.doc.workflow_state;
+    
+    // Skip states that are handled separately with user input
+    if (currentState === "Assigned for Pickup" || 
+        currentState === "Picked Up from Airport" || 
+        currentState === "Delivery Scheduled") {
+        return;
+    }
+    
+    // Check if tracking entry for current state already exists
+    let statusEntryExists = false;
+    
+    if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+        statusEntryExists = frm.doc.tracking_table.some(function (row) {
+            return row.status === currentState;
+        });
+    }
+
+    // If entry doesn't exist, add it
+    if (!statusEntryExists) {
+        add_tracking_entry_without_save(frm, currentState);
+        
+        // Save if not a new document
+        if (!frm.is_new()) {
+            frm.save();
+        }
+    }
+}
+
+// New function that adds tracking entry without saving
+function add_tracking_entry_without_save(frm, status, assigned_to = "") {
+    let new_row = frm.add_child("tracking_table");
+    new_row.status = status;
+    new_row.timestamp = frappe.datetime.now_datetime();
+    
+    if (assigned_to && assigned_to.trim() !== "") {
+        new_row.assigned_to = assigned_to;
+    }
+
+    frm.refresh_field("tracking_table");
+}
+
+// Original function that includes save - ONLY use when you want to save immediately
+function add_tracking_entry(frm, status, assigned_to = "") {
+    add_tracking_entry_without_save(frm, status, assigned_to);
+    frm.save();
+}
+
+function update_service_type_feature(frm) {
+    let mapping = {
+        "General Air Cargo": "Highly Valuable Goods",
+        "DG Air Cargo": "Lithium-Ion Batteries (Class 9)"
+    };
+
+    if (frm.doc.service_type in mapping) {
+        frm.set_value('service_type_feature', mapping[frm.doc.service_type]);
+
+        if (frm.doc.service_type === "General Air Cargo") {
+            frm.set_df_property('service_type_feature', 'read_only', 1);
+        } else {
+            frm.set_df_property('service_type_feature', 'read_only', 0);
+        }
+    } else {
+        frm.set_value('service_type_feature', '');
+    }
+
+    frm.refresh_field('service_type_feature');
+}
+
+// Handle pickup assignment separately
+function handle_pickup_assignment_dialog(frm) {
+    console.log("Showing pickup assignment dialog");
+    
+    let dialog = new frappe.ui.Dialog({
+        title: __('Assign Pickup-Delivery Schedule'),
+        fields: [
+            {
+                label: __('Pickup DateTime'),
+                fieldname: 'datetime',
+                fieldtype: 'Datetime',
+                reqd: 1,
+            },
+            {
+                label:__('Priority'),
+                fieldname: "priority",
+                fieldtype: "Select",
+                options: "Low\nMedium\nHigh",
+                reqd: 1
+            },
+            {
+                label: __('Delivery Branch'),
+                fieldname: 'delivery_branch',
+                fieldtype: 'Link',
+                options: 'Branch',
+                reqd: 1
+            },
+            {
+                label: __('Assign To'),
+                fieldname: 'assigned_to',
+                fieldtype: 'Link',
+                options: 'User',
+                reqd: 1
+            },
+        ],
+        primary_action_label: __('Assign'),
+        primary_action: function(values) {
+            // Hide dialog immediately
+            dialog.hide();
+            
+            // First create a tracking entry
+            let assigned_to_email = values.assigned_to;
+            
+            // Check if this assignment already exists
+            let assignmentExists = false;
+            if (frm.doc.tracking_table && frm.doc.tracking_table.length > 0) {
+                assignmentExists = frm.doc.tracking_table.some(function(row) {
+                    return row.status === "Assigned for Pickup" && 
+                           row.assigned_to === assigned_to_email;
+                });
+            }
+            
+            if (!assignmentExists) {
+                // Create new tracking entry with assigned_to value
+                let new_row = frm.add_child("tracking_table");
+                new_row.status = "Assigned for Pickup";
+                new_row.timestamp = frappe.datetime.now_datetime();
+                new_row.assigned_to = assigned_to_email;
+                frm.refresh_field("tracking_table");
+            }
+            
+            // Then create pickup-delivery document
+            let new_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
+            new_doc.status = frm.doc.workflow_state;
+            new_doc.assigned_to = assigned_to_email;
+            new_doc.origin = frm.doc.origin;
+            new_doc.destination = frm.doc.destination;
+            new_doc.pickup_branch = frm.doc.origin_branch;
+            new_doc.pickup_address = frm.doc.origin_address
+            new_doc.datetime = values.datetime;
+            new_doc.priority = values.priority;
+            new_doc.company_branch = values.delivery_branch;
+            new_doc.consignment_id = frm.doc.name;
+
+            frappe.db.insert(new_doc)
+            .then(() => {
+                console.log("Pickup-Delivery Schedule created");
+                
+                // Set scheduled flag to true to prevent dialog from showing again
+                frm.pickup_scheduled = true;
+                
+                // Store this in localStorage to persist across page reloads
+                localStorage.setItem(`pickup_scheduled_${frm.doc.name}`, 'true');
+                
+                // Save the form to ensure tracking table is updated
+                frm.save().then(() => {
+                    frm.reload_doc();
+                    frappe.show_alert({
+                        message: __('Assignment completed successfully'),
+                        indicator: 'green'
+                    });
+                });
+            })
+            .catch(err => {
+                console.log("Error", err);
+                frappe.show_alert({
+                    message: __('Error creating assignment: ' + err.message),
+                    indicator: 'red'
+                });
+            });
+        },
+        onhide: function() {
+            // If dialog is closed without action, reset the display flag
+            // after a delay to prevent immediate reopening
+            setTimeout(() => {
+                frm.pickup_dialog_displayed = false;
+            }, 1000);
+        }
+    });
+    
+    dialog.show();
+}
+
+// Handle airport pickup dialog
+function handle_picked_up_from_airport_dialog(frm) {
+    console.log("Showing airport pickup dialog");
+    
+    let dialog = new frappe.ui.Dialog({
+        title: __('Pick Up From Airport'),
+        fields: [
+            {
+                label: __('Pickup DateTime'),
+                fieldname: 'datetime',
+                fieldtype: 'Datetime',
+                reqd: 1,
+            },
+            {
+                label:__('Priority'),
+                fieldname: "priority",
+                fieldtype: "Select",
+                options: "Low\nMedium\nHigh",
+                reqd: 1
+            },
+            {
+                label: __('Drop Off Branch'),
+                fieldname: 'delivery_branch',
+                fieldtype: 'Link',
+                options: 'Branch',
+                reqd: 1
+            },
+            {
+                label: __('Assign To'),
+                fieldname: 'assigned_to',
+                fieldtype: 'Link',
+                options: 'User',
+                reqd: 1
+            },
+        ],
+        primary_action_label: __('Assign'),
+        primary_action: function(values) {
+            // Hide dialog immediately
+            dialog.hide();
+            
+            // First create a tracking entry
+            let assigned_to_email = values.assigned_to;
+            
+            // Create new tracking entry with assigned_to value
+            let new_row = frm.add_child("tracking_table");
+            new_row.status = "Picked Up from Airport";
+            new_row.timestamp = frappe.datetime.now_datetime();
+            new_row.assigned_to = assigned_to_email;
+            frm.refresh_field("tracking_table");
+            
+            // Then create pickup-delivery document
+            let new_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
+            new_doc.status = frm.doc.workflow_state;
+            new_doc.assigned_to = assigned_to_email;
+            new_doc.origin = frm.doc.origin;
+            new_doc.destination = frm.doc.destination;
+            new_doc.pickup_branch = frm.doc.origin_branch;
+            new_doc.pickup_address = frm.doc.origin_address;
+            new_doc.datetime = values.datetime;
+            new_doc.priority = values.priority;
+            new_doc.company_branch = values.delivery_branch;
+            new_doc.consignment_id = frm.doc.name;
+            
+            frappe.db.insert(new_doc)
+            .then(() => {
+                console.log("Pickup-Delivery Schedule created for airport pickup");
+                
+                // Set scheduled flag to true to prevent dialog from showing again
+                frm.airport_scheduled = true;
+                
+                // Store this in localStorage to persist across page reloads
+                localStorage.setItem(`airport_scheduled_${frm.doc.name}`, 'true');
+                
+                frm.save().then(() => {
+                    frm.reload_doc();
+                    frappe.show_alert({
+                        message: __('Airport pickup assignment completed successfully'),
+                        indicator: 'green'
+                    });
+                });
+            })
+            .catch(err => {
+                console.log("Error", err);
+                frappe.show_alert({
+                    message: __('Error creating airport pickup assignment: ' + err.message),
+                    indicator: 'red'
+                });
+            });
+        },
+        onhide: function() {
+            // If dialog is closed without action, reset the display flag
+            // after a delay to prevent immediate reopening
+            setTimeout(() => {
+                frm.airport_dialog_displayed = false;
+            }, 1000);
+        }
+    });
+    
+    dialog.show();
+}
+
+// Handle delivery scheduled dialog
+function handle_delivery_scheduled_dialog(frm) {
+    console.log("Showing delivery scheduled dialog");
+    
+    let dialog = new frappe.ui.Dialog({
+        title: __('Schedule Delivery'),
+        fields: [
+            {
+                label: __('Delivery DateTime'),
+                fieldname: 'datetime',
+                fieldtype: 'Datetime',
+                reqd: 1,
+            },
+            {
+                label:__('Priority'),
+                fieldname: "priority",
+                fieldtype: "Select",
+                options: "Low\nMedium\nHigh",
+                reqd: 1
+            },
+            {
+                label: __('Delivery Branch'),
+                fieldname: 'delivery_branch',
+                fieldtype: 'Link',
+                options: 'Branch',
+                reqd: 1
+            },
+            {
+                label: __('Delivery Address'),
+                fieldname: 'delivery_address',
+                fieldtype: 'Link',
+                options: 'Address',
+                 reqd: 1
+            },
+            {
+                label: __('Assign To'),
+                fieldname: 'assigned_to',
+                fieldtype: 'Link',
+                options: 'User',
+                reqd: 1
+            },
+        ],
+        primary_action_label: __('Assign'),
+        primary_action: function(values) {
+            // Hide dialog immediately
+            dialog.hide();
+            
+            // First create a tracking entry
+            let assigned_to_email = values.assigned_to;
+            
+            // Create new tracking entry with assigned_to value
+            let new_row = frm.add_child("tracking_table");
+            new_row.status = "Delivery Scheduled";
+            new_row.timestamp = frappe.datetime.now_datetime();
+            new_row.assigned_to = assigned_to_email;
+            frm.refresh_field("tracking_table");
+            
+            // Then create pickup-delivery document
+            let new_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
+            new_doc.status = frm.doc.workflow_state;
+            new_doc.assigned_to = assigned_to_email;
+            new_doc.origin = frm.doc.origin;
+            new_doc.destination = frm.doc.destination;
+            new_doc.pickup_branch = frm.doc.destination_branch;
+            new_doc.pickup_address = frm.doc.destination_address;
+            new_doc.datetime = values.datetime;
+            new_doc.priority = values.priority;
+            new_doc.company_branch = values.delivery_branch;
+            new_doc.pickup_address = values.delivery_address;
+            new_doc.consignment_id = frm.doc.name;
+            
+            frappe.db.insert(new_doc)
+            .then(() => {
+                console.log("Pickup-Delivery Schedule created for delivery");
+                
+                // Set scheduled flag to true to prevent dialog from showing again
+                frm.delivery_scheduled = true;
+                
+                // Store this in localStorage to persist across page reloads
+                localStorage.setItem(`delivery_scheduled_${frm.doc.name}`, 'true');
+                
+                frm.save().then(() => {
+                    frm.reload_doc();
+                    frappe.show_alert({
+                        message: __('Delivery schedule assignment completed successfully'),
+                        indicator: 'green'
+                    });
+                });
+            })
+            .catch(err => {
+                console.log("Error", err);
+                frappe.show_alert({
+                    message: __('Error creating delivery schedule assignment: ' + err.message),
+                    indicator: 'red'
+                });
+            });
+        },
+        onhide: function() {
+            // If dialog is closed without action, reset the display flag
+            // after a delay to prevent immediate reopening
+            setTimeout(() => {
+                frm.delivery_dialog_displayed = false;
+            }, 1000);
+        }
+    });
+    
+    dialog.show();
+}
+
+function generate_sales_invoice(frm) {
+    frappe.call({
+        method: "frappe.client.get_value",
+        args: {
+            doctype: "Consignment Note",
+            filters: { name: frm.doc.name },
+            fieldname: "sales_invoice"
+        },
+        callback: function (r) {
+            if (r.message && r.message.sales_invoice) {
+                // frappe.msgprint(`Sales Invoice already exists: <a href="/app/sales-invoice/${r.message.sales_invoice}" target="_blank">${r.message.sales_invoice}</a>`);
+            } else {
+                frappe.call({
+                    method: 'shipping.shipping.doctype.consignment_note.make_sales_invoice.make_invoice',
+                    args: {
+                        data: frm.doc
+                    },
+                    freeze: true,
+                    callback: (r) => {
+                        if (r.message.sales_invoice_name) {
+                            frappe.msgprint(`Sales Invoice ${r.message.sales_invoice_name} created successfully.`);
+                            frm.reload_doc(); 
+                        }
+                        else if(r.message.created_sales_invoice_name) {
+                            console.log(r.message.created_sales_invoice_name);
+                        }
+
+                    },
+                    error: (r) => {
+                        console.log(r);
+                    }
+                });
+            }
+        }
+    });
+}

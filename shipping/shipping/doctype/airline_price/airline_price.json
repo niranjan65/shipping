@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-06 17:22:58.665241",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "air_line_name",
+  "origin",
+  "destination",
+  "price"
+ ],
+ "fields": [
+  {
+   "fieldname": "air_line_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Air line name"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Origin"
+  },
+  {
+   "fieldname": "destination",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Destination"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price "
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-10 13:37:02.331848",
+ "modified_by": "Administrator",
+ "module": "Shipping",
+ "name": "Airline Price",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

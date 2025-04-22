@@ -10,6 +10,18 @@ app_license = "mit"
 
 # required_apps = []
 
+# Enable CORS for all origins (or specify a domain)
+cors = ["*"]
+
+# Allow specific headers in API requests
+webserver_headers = [
+    ("Access-Control-Allow-Origin", "*"),
+    ("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE"),
+    ("Access-Control-Allow-Headers", "Authorization, Content-Type"),
+    ("Access-Control-Allow-Credentials", "true"),
+]
+
+
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{

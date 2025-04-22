@@ -1,0 +1,32 @@
+{
+ "cards": [
+  {
+   "card": "Total Shipments"
+  }
+ ],
+ "charts": [
+  {
+   "width": "Half"
+  },
+  {
+   "chart": "Consignment Note",
+   "width": "Half"
+  },
+  {
+   "chart": "Manifest Order",
+   "width": "Half"
+  }
+ ],
+ "creation": "2025-02-27 19:18:17.445486",
+ "dashboard_name": "Shipping",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2025-03-11 19:15:32.159402",
+ "modified_by": "shantanu@anantdv.com",
+ "module": "Shipping",
+ "name": "Shipping",
+ "owner": "niranjan.ks@anantdv.com"
+}

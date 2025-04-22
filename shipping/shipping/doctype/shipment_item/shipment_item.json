@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-02-06 16:53:16.090420",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "pieces_no",
+  "piece_weight_kg",
+  "lengthcm",
+  "widthcm",
+  "heightcm",
+  "image_url"
+ ],
+ "fields": [
+  {
+   "fieldname": "pieces_no",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "label": "Pieces No",
+   "reqd": 1
+  },
+  {
+   "fieldname": "piece_weight_kg",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Piece Weight(KG)",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "lengthcm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Length(CM)"
+  },
+  {
+   "fieldname": "widthcm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Width(CM)"
+  },
+  {
+   "fieldname": "heightcm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Height(CM)"
+  },
+  {
+   "fieldname": "image_url",
+   "fieldtype": "Attach Image",
+   "label": "Image Url"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-03 16:57:32.534348",
+ "modified_by": "Administrator",
+ "module": "Shipping",
+ "name": "Shipment_item",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

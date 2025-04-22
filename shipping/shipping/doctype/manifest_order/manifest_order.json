@@ -1,0 +1,248 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "MO.######",
+ "creation": "2025-02-06 16:52:15.563731",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "manifest_order_section",
+  "date",
+  "qr_code",
+  "branch_flag",
+  "is_on_hold",
+  "is_manifest_check",
+  "airline_awb_number",
+  "airline_name",
+  "port_of_origin",
+  "airport_code",
+  "port_of_destination",
+  "destination_airport_code",
+  "reason_for_hold",
+  "section_break_7",
+  "shipment_details",
+  "total_weight",
+  "total_no_of_pieces",
+  "section_break_cgvz",
+  "prepared_by",
+  "signature",
+  "prepared_by_date",
+  "section_break_15",
+  "airline_staff",
+  "airline_signature",
+  "signature_date",
+  "section_break_pjae",
+  "courier_name",
+  "qr_code_url_",
+  "location",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "manifest_order_section",
+   "fieldtype": "Section Break",
+   "label": "Manifest Order"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date "
+  },
+  {
+   "fieldname": "qr_code",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "QR Code"
+  },
+  {
+   "fieldname": "port_of_origin",
+   "fieldtype": "Link",
+   "label": "Port Of Origin",
+   "options": "Location"
+  },
+  {
+   "fieldname": "port_of_destination",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Port Of Destination",
+   "options": "Location"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "shipment_details",
+   "fieldtype": "Table",
+   "label": "Shipment Details",
+   "options": "Shipment Details"
+  },
+  {
+   "fieldname": "total_weight",
+   "fieldtype": "Int",
+   "label": "Total Weight"
+  },
+  {
+   "fieldname": "total_no_of_pieces",
+   "fieldtype": "Data",
+   "label": "Total No. Of Pieces"
+  },
+  {
+   "fieldname": "section_break_cgvz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Prepared By"
+  },
+  {
+   "fieldname": "signature",
+   "fieldtype": "Signature",
+   "hidden": 1,
+   "label": "Signature"
+  },
+  {
+   "fieldname": "prepared_by_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Prepared By Date"
+  },
+  {
+   "fieldname": "section_break_15",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "airline_staff",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Airline Staff"
+  },
+  {
+   "fieldname": "airline_signature",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Airline Signature"
+  },
+  {
+   "fieldname": "signature_date",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Signature Date"
+  },
+  {
+   "fieldname": "section_break_pjae",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "courier_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Courier Name"
+  },
+  {
+   "fieldname": "qr_code_url_",
+   "fieldtype": "Data",
+   "label": "QRCode URL",
+   "read_only": 1,
+   "translatable": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "location"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Manifest Order",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "airline_name",
+   "fieldtype": "Link",
+   "label": "Airline Name",
+   "options": "Airline Name"
+  },
+  {
+   "fetch_from": "port_of_origin.custom_airport_code",
+   "fieldname": "airport_code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Origin Airport Code"
+  },
+  {
+   "fetch_from": "port_of_destination.custom_airport_code",
+   "fieldname": "destination_airport_code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Destination Airport Code"
+  },
+  {
+   "default": "0",
+   "fieldname": "branch_flag",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Branch Flag"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_on_hold",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is On Hold"
+  },
+  {
+   "fieldname": "reason_for_hold",
+   "fieldtype": "Data",
+   "label": "Reason For Hold",
+   "mandatory_depends_on": "eval:doc.is_on_hold===1"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_manifest_check",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Manifest check"
+  },
+  {
+   "fieldname": "airline_awb_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Airline AWB Number"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-04-15 23:35:39.119533",
+ "modified_by": "Administrator",
+ "module": "Shipping",
+ "name": "Manifest Order",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

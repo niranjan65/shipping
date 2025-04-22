@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-06 17:18:59.317419",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "rate_chart"
+ ],
+ "fields": [
+  {
+   "fieldname": "rate_chart",
+   "fieldtype": "Table",
+   "label": "Rate Chart",
+   "options": "Rate Chart Table"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-10 13:23:57.573923",
+ "modified_by": "Administrator",
+ "module": "Shipping",
+ "name": "Rate Chart",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

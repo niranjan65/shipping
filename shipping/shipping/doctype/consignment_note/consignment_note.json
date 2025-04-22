@@ -1,0 +1,518 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "CAL-.#######",
+ "creation": "2025-02-06 16:51:11.511953",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "workflow_state",
+  "title",
+  "air_way_bill",
+  "qr_code",
+  "customer_type",
+  "service_type",
+  "service_type_feature",
+  "attachment",
+  "column_break_5",
+  "customer_name",
+  "datetime",
+  "expected_delivery_date",
+  "value_of_shipment_section",
+  "value_of_shipment",
+  "column_break_443m",
+  "proof_of_value",
+  "column_break_xipg",
+  "insurance_value",
+  "location_mapping_section",
+  "origin",
+  "airline_code",
+  "destination",
+  "branch_flag",
+  "destination_airline_code",
+  "column_break_ytbg",
+  "origin_branch",
+  "destination_branch",
+  "column_break_hoha",
+  "origin_address",
+  "destination_address",
+  "payers_details_section",
+  "payers_name",
+  "payers_account_number",
+  "column_break_12",
+  "description",
+  "shippers_details_section",
+  "shipping_company_name",
+  "address",
+  "shipping_city",
+  "column_break_r8rd",
+  "contact_name",
+  "contact_number",
+  "shipper_email",
+  "shipping_post_code",
+  "receivers_details_section",
+  "receiving_company_name",
+  "receivers_address",
+  "receiving_city",
+  "column_break_27",
+  "receiver_contact_name",
+  "receiver_contact_number",
+  "receiver_email",
+  "receiving_post_code",
+  "shipment_details_section",
+  "drafted_shipment_details",
+  "dispatch_flag",
+  "check_shipment_details",
+  "total_number_of_pieces",
+  "total_weight",
+  "total_value",
+  "additional_information",
+  "shippers_agreement",
+  "wei_agree_to_all_the_terms_and_conditions_of_ca_logistic",
+  "signature",
+  "amended_from",
+  "tracking_section",
+  "tracking_id",
+  "tracking_table",
+  "is_manifest_check",
+  "sales_invoice"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "air_way_bill",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Air Way Bill Number"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "qr_code",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "qr_code"
+  },
+  {
+   "default": "Corporate",
+   "fieldname": "customer_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Customer Type",
+   "options": "\nCorporate\nCash",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer Name",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_type",
+   "fieldtype": "Link",
+   "label": "Service Type",
+   "options": "Service Type",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Origin",
+   "options": "Location",
+   "reqd": 1
+  },
+  {
+   "fieldname": "destination",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Destination",
+   "options": "Location",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "datetime",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "origin_branch.address",
+   "fieldname": "payers_details_section",
+   "fieldtype": "Section Break",
+   "label": "PAYER'S DETAILS"
+  },
+  {
+   "fieldname": "payers_name",
+   "fieldtype": "Data",
+   "label": "Payer's Name"
+  },
+  {
+   "fieldname": "payers_account_number",
+   "fieldtype": "Data",
+   "label": "Payer's Account Number"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description "
+  },
+  {
+   "fieldname": "shippers_details_section",
+   "fieldtype": "Section Break",
+   "label": "SHIPPER'S DETAILS"
+  },
+  {
+   "fieldname": "shipping_company_name",
+   "fieldtype": "Data",
+   "label": "Shipping Company Name"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Shipper's Address"
+  },
+  {
+   "fieldname": "shipping_city",
+   "fieldtype": "Data",
+   "label": "Shipping City"
+  },
+  {
+   "fieldname": "column_break_r8rd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "label": "Shipper Contact Name"
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Data",
+   "label": "Shipper Contact Number"
+  },
+  {
+   "fieldname": "shipper_email",
+   "fieldtype": "Data",
+   "label": "Shipper Email"
+  },
+  {
+   "fieldname": "shipping_post_code",
+   "fieldtype": "Data",
+   "label": "Shipping Post Code"
+  },
+  {
+   "fieldname": "receivers_details_section",
+   "fieldtype": "Section Break",
+   "label": "RECEIVER'S DETAILS"
+  },
+  {
+   "fieldname": "receiving_company_name",
+   "fieldtype": "Data",
+   "label": "Receiving Company Name"
+  },
+  {
+   "fieldname": "receivers_address",
+   "fieldtype": "Small Text",
+   "label": "Receiver's Address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "receiving_city",
+   "fieldtype": "Data",
+   "label": "Receiving City",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_27",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "receiver_contact_name",
+   "fieldtype": "Data",
+   "label": "Receiver Contact Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "receiver_contact_number",
+   "fieldtype": "Data",
+   "label": "Receiver Contact Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "receiver_email",
+   "fieldtype": "Data",
+   "label": "Receiver Email"
+  },
+  {
+   "fieldname": "receiving_post_code",
+   "fieldtype": "Data",
+   "label": "Receiving Post Code"
+  },
+  {
+   "fieldname": "shipment_details_section",
+   "fieldtype": "Section Break",
+   "label": "SHIPMENT DETAILS"
+  },
+  {
+   "fieldname": "check_shipment_details",
+   "fieldtype": "Table",
+   "label": "Final Shipment Details",
+   "mandatory_depends_on": "eval:doc.workflow_state === 'Verified Weight/Dimension'",
+   "options": "Shipment_item"
+  },
+  {
+   "fieldname": "total_number_of_pieces",
+   "fieldtype": "Data",
+   "label": "Total Number Of Pieces"
+  },
+  {
+   "fieldname": "total_weight",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Total Weight",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "total_value",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Total Value"
+  },
+  {
+   "fieldname": "additional_information",
+   "fieldtype": "Text Editor",
+   "label": "Additional information "
+  },
+  {
+   "fieldname": "shippers_agreement",
+   "fieldtype": "Section Break",
+   "label": "SHIPPER'S AGREEMENT "
+  },
+  {
+   "fieldname": "wei_agree_to_all_the_terms_and_conditions_of_ca_logistic",
+   "fieldtype": "Heading",
+   "label": "We/I agree to ALL the Terms and Conditions of CA Logistic"
+  },
+  {
+   "fieldname": "signature",
+   "fieldtype": "Signature",
+   "label": "Signature"
+  },
+  {
+   "fieldname": "workflow_state",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Workflow State",
+   "no_copy": 1,
+   "options": "Workflow State"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Consignment Note",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "tracking_id",
+   "fieldtype": "Data",
+   "label": "Tracking Id"
+  },
+  {
+   "fieldname": "tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Tracking"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "tracking_table",
+   "fieldtype": "Table",
+   "label": "Tracking Table",
+   "options": "Tracking Table"
+  },
+  {
+   "fieldname": "drafted_shipment_details",
+   "fieldtype": "Table",
+   "label": "Drafted Shipment Details",
+   "options": "Shipment_item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "origin_branch.address",
+   "fieldname": "origin_address",
+   "fieldtype": "Link",
+   "label": "Origin Address",
+   "options": "Address"
+  },
+  {
+   "fetch_from": "destination_branch.address",
+   "fieldname": "destination_address",
+   "fieldtype": "Link",
+   "label": "Destination Address",
+   "options": "Address"
+  },
+  {
+   "depends_on": "eval:doc.service_type==\"General Air Cargo\" || doc.service_type==\"DG Air Cargo\";",
+   "fieldname": "service_type_feature",
+   "fieldtype": "Data",
+   "label": "Service Type Feature"
+  },
+  {
+   "fieldname": "location_mapping_section",
+   "fieldtype": "Section Break",
+   "label": "Location Mapping"
+  },
+  {
+   "fieldname": "column_break_ytbg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "origin_branch",
+   "fieldtype": "Link",
+   "label": "Origin Branch",
+   "options": "Customer Branch"
+  },
+  {
+   "fieldname": "destination_branch",
+   "fieldtype": "Link",
+   "label": "Destination Branch",
+   "options": "Customer Branch"
+  },
+  {
+   "fieldname": "column_break_hoha",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "insurance_value",
+   "fieldtype": "Data",
+   "label": "Insurance Value (PGK)"
+  },
+  {
+   "fetch_from": "origin.custom_airport_code",
+   "fieldname": "airline_code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Airport Code"
+  },
+  {
+   "fetch_from": "destination.custom_airport_code",
+   "fieldname": "destination_airline_code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Destination Airport Code"
+  },
+  {
+   "default": "0",
+   "fieldname": "branch_flag",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Branch Flag"
+  },
+  {
+   "fieldname": "expected_delivery_date",
+   "fieldtype": "Date",
+   "label": "Expected Delivery Date",
+   "mandatory_depends_on": "eval:doc.workflow_state === 'Verified Weight/Dimension'"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "dispatch_flag",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Dispatch_flag"
+  },
+  {
+   "fieldname": "value_of_shipment_section",
+   "fieldtype": "Section Break",
+   "label": "Value Of Shipment"
+  },
+  {
+   "fieldname": "value_of_shipment",
+   "fieldtype": "Currency",
+   "label": "Value Of Shipment (PGK)",
+   "options": "Currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_443m",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "proof_of_value",
+   "fieldtype": "Attach",
+   "label": "Proof Of Value"
+  },
+  {
+   "fieldname": "column_break_xipg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.service_type==\"DG Air Cargo\"",
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment "
+  },
+  {
+   "default": "0",
+   "fieldname": "is_manifest_check",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Manifest Check"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "sales_invoice",
+   "options": "Sales Invoice"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-04-14 20:49:02.795955",
+ "modified_by": "Administrator",
+ "module": "Shipping",
+ "name": "Consignment Note",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

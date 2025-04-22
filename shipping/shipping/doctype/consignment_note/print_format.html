@@ -1,0 +1,267 @@
+please sont delete this
+this is saved as print format
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consignment Note Label</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            /*margin: 50px;*/
+            /*padding: 10px;*/
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+
+        .label-container {
+            border: 0px solid #000;
+            padding: 10px;
+            background-color: #fff;
+            width: 380px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .company-logo {
+            width: 80px;
+            height: auto;
+        }
+
+        .header-barcode img {
+            width: 100px;
+            height: auto;
+        }
+
+        .order-id {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .body {
+            display: flex;
+            padding-bottom: 30px;
+        }
+
+        .left-column {
+            flex: 1;
+        }
+
+        .right-column {
+            flex: 1;
+            margin-left: 8px;
+        }
+
+        .box {
+            border: 0px solid #000;
+            padding: 8px;
+            background-color: #f1f1f1;
+            margin-bottom: 10px;
+        }
+
+        .box h2 {
+            font-size: 14px;
+            color: #000;
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+        .box ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .box li {
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #444;
+        }
+
+        .location-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 5px 5px 5px 5px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-box div {
+            margin: 5px 0;
+        }
+
+        .origin,
+        .destination {
+            font-weight: bold;
+            font-size: 20px;
+            /* Larger font size */
+            text-transform: uppercase;
+            /* Uppercase text */
+        }
+
+        .qr-code {
+            /*text-align: center;*/
+            /*padding: 10px;*/
+        }
+
+        .qr-code img {
+            width: 140px;
+            height: auto;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding-top: 10px;
+        }
+
+        .footer img {
+            max-width: 80%;
+        }
+
+        .shipment-details {
+            /*padding: 10px;*/
+            font-size: 12px;
+        }
+
+        .shipment-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .shipment-details th,
+        .shipment-details td {
+            padding: 8px;
+            text-align: left;
+            font-size: 6px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .shipment-details th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .shipment-details tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="label-container">
+        <div class="header">
+            <div class="header-left">
+                <img src="/assets/erpnext/images/cal_logo2.png" alt="Company Logo" class="company-logo">
+            </div>
+            <div class="header-barcode">
+                <img src="/assets/erpnext/images/barcode.png" alt="Barcode">
+            </div>
+        </div>
+
+        <div class="order-id">Order ID: {{ doc.name }}</div>
+        <div class="body">
+            <div class="left-column">
+                <div class="box sender-details">
+                    <h2>Sender Details</h2>
+                    <ul>
+                        <li><strong>Name:</strong> {{ doc.shipping_company_name }}</li>
+                        <li><strong>Address:</strong> {{ doc.address }}</li>
+                        <li><strong>City:</strong> {{ doc.shipping_city }}</li>
+                        <li><strong>Contact:</strong> {{ doc.contact_name }} ({{ doc.contact_number }})</li>
+                    </ul>
+                </div>
+                <div class="box receiver-details">
+                    <h2>Receiver Details</h2>
+                    <ul>
+                        <li><strong>Name:</strong> {{ doc.receiving_company_name }}</li>
+                        <li><strong>Address:</strong> {{ doc.receivers_address }}</li>
+                        <li><strong>City:</strong> {{ doc.receiving_city }}</li>
+                        <li><strong>Contact:</strong> {{ doc.receiver_contact_name }} ({{ doc.receiver_contact_number
+                            }})</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="location-box">
+                    <div>Origin</div>
+                    <div class="origin highlight">{{ doc.airline_code }}</div>
+                    <div class="arrow">↓</div>
+                    <div class="destination highlight">{{ doc.destination_airline_code }}</div>
+                    <div>Destination</div>
+                </div>
+                <div class="qr-code">
+                    <img src="{{ doc.qr_code }}" alt="QR Code">
+                </div>
+            </div>
+        </div>
+
+        <!--<div class="footer">-->
+        <!--    <img src="/assets/erpnext/images/barcode.png" alt="Footer Barcode">-->
+        <!--</div>-->
+
+        <div class="service-type" style="border-top: 1px solid #000;">
+            Shipment Details
+        </div>
+
+        <div class="shipment-details">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pieces Number</th>
+                        <th>Piece Weight(KG)</th>
+                        <th>Length(CM)</th>
+                        <th>Width(CM)</th>
+                        <th>Height(CM)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in doc.drafted_shipment_details %}
+                    <tr>
+                        <td>{{ item.pieces_no }}</td>
+                        <td>{{ item.piece_weight_kg }}</td>
+                        <td>{{ item.lengthcm }}</td>
+                        <td>{{ item.widthcm }}</td>
+                        <td>{{ item.heightcm }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

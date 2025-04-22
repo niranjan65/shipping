@@ -1,0 +1,109 @@
+{
+ "charts": [
+  {
+   "chart_name": "Consignment Note",
+   "label": "Connote"
+  },
+  {
+   "chart_name": "Manifest Order",
+   "label": "Manifest"
+  },
+  {
+   "chart_name": "Outgoing Bills (Sales Invoice)",
+   "label": "Invoices"
+  }
+ ],
+ "content": "[{\"id\":\"hJ2bYcwHB5\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Shipping</span>\",\"col\":12}},{\"id\":\"-NL0zLSpou\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Numbers</span>\",\"col\":12}},{\"id\":\"Lf4gSmNBrs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Shipments\",\"col\":3}},{\"id\":\"EqYkGrS9NP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Shipments\",\"col\":3}},{\"id\":\"g7L3VwM45K\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Billed Amount\",\"col\":3}},{\"id\":\"0zjjnAUjxB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Billed Amount\",\"col\":3}},{\"id\":\"jaSwJMcQW4\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Shortcuts</span>\",\"col\":12}},{\"id\":\"uhwQxeIvrV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Connote List\",\"col\":3}},{\"id\":\"bNKn-O18uG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Connote\",\"col\":3}},{\"id\":\"jeso8hcI3C\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Manifest List\",\"col\":3}},{\"id\":\"RCuo7wSzGv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Consolidation\",\"col\":3}},{\"id\":\"LMCbdmdnlc\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Dashboard</b></span>\",\"col\":12}},{\"id\":\"RLHIwEL2GJ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Connote\",\"col\":6}},{\"id\":\"DPkzXv7E2-\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Manifest\",\"col\":6}},{\"id\":\"s4dj63ysdj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Invoices\",\"col\":12}}]",
+ "creation": "2025-02-06 11:43:31.970819",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Shipping",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Consignment Note",
+   "link_count": 0,
+   "link_to": "Consignment Note",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-03-11 19:46:49.877935",
+ "modified_by": "shantanu@anantdv.com",
+ "module": "Shipping",
+ "name": "Shipping",
+ "number_cards": [
+  {
+   "label": "Pending Billed Amount",
+   "number_card_name": "Outstanding Billed Amount"
+  },
+  {
+   "label": "Pending Shipments",
+   "number_card_name": "Total Shipments"
+  },
+  {
+   "label": "Total Billed Amount",
+   "number_card_name": "Total Outgoing Bills"
+  },
+  {
+   "label": "Total Shipments",
+   "number_card_name": "Total Shipments"
+  }
+ ],
+ "owner": "niranjan.ks@anantdv.com",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "All"
+  },
+  {
+   "role": "Shipping"
+  }
+ ],
+ "sequence_id": 30.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "New",
+   "label": "New Connote",
+   "link_to": "Consignment Note",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Connote List",
+   "link_to": "Consignment Note",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "New",
+   "label": "Consolidation",
+   "link_to": "Cons and Dispatch",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Pink",
+   "doc_view": "List",
+   "label": "Manifest List",
+   "link_to": "Manifest Order",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Shipping"
+}

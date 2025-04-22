@@ -1,0 +1,412 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .logo {
+            display: block;
+            margin: 20px auto;
+            width: 100px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .hidden {
+            display: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        #thankYou {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #thankYou h2 {
+            color: #28a745;
+        }
+    </style>
+    <script>
+
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        document.addEventListener("DOMContentLoaded", async function() {
+            const sid = localStorage.getItem("sid");
+            // if (!sid || sid === "undefined") {
+            //     window.location.href = "man_login?id="+getQueryParams().id;
+            //     return;
+            // }  
+
+            const params = getQueryParams();
+            if (params.id) {
+                document.getElementById("id").value = params.id;
+                console.log(getQueryParams().id)
+                const response = await fetch(`/api/method/shipping.www.action_data.get_workflow_state_man?manifest_order_id=${getQueryParams().id}`, {
+                    headers: { "Cookie": `sid=${sid}` }
+                });
+
+                const result = await response.json();
+                if (result.message) {
+                    document.getElementById("action").value = result.message.current_state;
+                    // document.getElementById("customer_name").value = result.message.customer_name;
+
+                    const nextActionSelect = document.getElementById("next_action");
+                    nextActionSelect.innerHTML = ""; 
+
+                    let defaultOption = document.createElement("option");
+                    defaultOption.value = "";
+                    defaultOption.textContent = "Select Next Status";
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    nextActionSelect.appendChild(defaultOption);
+
+                    if (result.message.next_states && result.message.next_states.length > 0) {
+                        result.message.next_states.forEach(state => {
+                            let option = document.createElement("option");
+                            option.value = state;
+                            option.textContent = state;
+                            nextActionSelect.appendChild(option);
+                        });
+
+                        document.getElementById("changeStateBtn").classList.remove("hidden");
+                    }
+                }
+            }
+        });
+
+        function showStateSelection() {
+            document.getElementById("next_action_label").classList.remove("hidden");
+            document.getElementById("next_action").classList.remove("hidden");
+            document.getElementById("submitBtn").classList.remove("hidden");
+            document.getElementById("changeStateBtn").classList.add("hidden");
+        }
+
+        async function updateWorkflowState(event) {
+            event.preventDefault();
+            const id = document.getElementById("id").value;
+            const newState = document.getElementById("next_action").value;
+            const sid = localStorage.getItem("sid");
+
+            if (!newState) {
+                alert("Please select a next status.");
+                return;
+            }
+
+            const response = await fetch(`/api/method/shipping.www.action_data.update_workflow_state_man`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Cookie": `sid=${sid}`
+                },
+                body: JSON.stringify({
+                    manifest_order_id: id,
+                    new_state: newState
+                })
+            });
+
+            const result = await response.json();
+            if (result.message.status === "success") {
+                document.getElementById("shippingForm").style.display = "none";
+                document.getElementById("thankYou").style.display = "block";
+                setTimeout(() => {
+                    window.location.href = "https://adv.anantdv.com/man";
+                }, 3000);
+            } else {
+                alert("Failed to update workflow state.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="container">
+        <img src="assets/erpnext/images/cal_logo2.png" alt="Logo" class="logo">
+        <h2>Shipping Website Application</h2> 
+        
+        <form id="shippingForm" onsubmit="updateWorkflowState(event)">
+            <div class="form-group">
+                <label for="id">ID:</label>
+                <input type="text" id="id" name="id" class="form-control" readonly>
+            </div>
+            
+             <div class="form-group">
+                <label for="customer_name">Customer Name:</label>
+                <input type="text" id="customer_name" name="customer_name" class="form-control" readonly>
+            </div> 
+            
+            <div class="form-group">
+                <label for="action">Current Status:</label>
+                <input type="text" id="action" name="action" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="next_action" id="next_action_label" class="hidden">Next Status:</label>
+                <select id="next_action" name="next_action" class="form-control hidden"></select>
+                <button type="button" id="changeStateBtn" class="btn btn-primary hidden" onclick="showStateSelection()">Change State</button>
+            </div>
+
+            <div class="form-group text-center">
+                <input type="submit" id="submitBtn" value="Submit" class="btn btn-primary hidden">
+            </div>
+        </form>
+
+        <div id="thankYou">
+            <h2>Thank You!</h2>
+            <p>Your workflow state has been successfully updated.</p>
+            <p>Redirecting to the homepage...</p>
+        </div>
+    </div>
+</body>
+</html>
+ -->
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Workflow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #container {
+            width: 350px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-control {
+            width: 90%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        function login() {
+            const email = document.getElementById("accessToken").value;
+            const password = document.getElementById("pass").value;
+            
+            fetch('https://adv.anantdv.com/api/method/login', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ usr: email, pwd: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Logged In") {
+                    document.getElementById("error-message").textContent = "";
+                    localStorage.setItem("sid", data.sid);
+                    document.getElementById("loginForm").classList.add("hidden");
+                    document.getElementById("workflowForm").classList.remove("hidden");
+                    loadWorkflowState();
+                } else {
+                    document.getElementById("error-message").textContent = "Login failed. Invalid credentials.";
+                }
+            });
+        }
+
+        function loadWorkflowState() {
+            // const sid = localStorage.getItem("sid");
+            // if (!sid) return;
+
+            fetch(`/api/method/shipping.www.action_data.get_workflow_state_man?manifest_order_id=${getQueryParams().id}`, {
+                // headers: { "Cookie": `sid=${sid}` }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Getting data...", getQueryParams().id)
+                document.getElementById("current_status").value = data.message.current_state || "Unknown";
+                document.getElementById("manifest-id").textContent = getQueryParams().id || "Unknown";
+                
+                const nextActionSelect = document.getElementById("next_action");
+                nextActionSelect.innerHTML = "";
+                
+                data.message.next_states.forEach(state => {
+                    let option = document.createElement("option");
+                    option.value = state;
+                    option.textContent = state;
+                    nextActionSelect.appendChild(option);
+                });
+            });
+        }
+
+        function updateWorkflowState() {
+            const newState = document.getElementById("next_action").value;
+            const sid = localStorage.getItem("sid");
+            if (!newState) return;
+            console.log(getQueryParams().id)
+            fetch(`/api/method/shipping.www.action_data.update_workflow_state_man`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ consignment_note_id: getQueryParams().id, new_state: newState })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message.status === "success") {
+                    document.getElementById("workflowForm").classList.add("hidden");
+                    document.getElementById("thankYou").classList.remove("hidden");
+                    setTimeout(() => {
+                        window.location.href = "https://adv.anantdv.com/man";
+                    }, 3000);
+                }
+            });
+        }
+    </script>
+</head>
+
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; font-family: Arial, sans-serif;">
+    <div id="container" style="width: 350px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center;">
+        
+        
+        <div id="loginForm">
+            <h2 style="color: #333;">Login</h2>
+            <div class="form-group">
+                <input type="text" id="accessToken" class="form-control" placeholder="Enter User" 
+                    style="width: 91%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; outline: none; margin-bottom: 12px; background: #f9f9f9;">
+            </div>
+            <div class="form-group">
+                <input type="password" id="pass" class="form-control" placeholder="Enter Password" 
+                    style="width: 91%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; outline: none; background: #f9f9f9;">
+            </div>
+            <button class="btn" onclick="login()" 
+                style="width: 100%; margin-top: 15px; background-color: #007bff; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s;">
+                Login
+            </button>
+            <p id="error-message" style="color: red; margin-top: 10px;"></p>
+        </div>
+
+        
+        <div id="workflowForm" class="hidden">
+            <h2 style="color: #333;">Workflow State</h2>
+            <h3 id="manifest-id" style="color: #555;"></h3>
+            <div class="form-group">
+                <label style="display: block; text-align: left; margin-bottom: 5px;">Current Status:</label>
+                <input type="text" id="current_status" class="form-control" readonly 
+                    style="width: 91%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; outline: none; background: #f9f9f9;">
+            </div>
+            <div class="form-group">
+                <label style="display: block; text-align: left; margin-top: 12px; margin-bottom: 5px;">Next Status:</label>
+                <select id="next_action" class="form-control" 
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; outline: none; background: #f9f9f9;">
+                </select>
+            </div>
+            <button class="btn" onclick="updateWorkflowState()" 
+                style="width: 100%; margin-top: 15px; background-color: #007bff; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s;">
+                Update State
+            </button>
+        </div>
+
+        
+        <div id="thankYou" class="hidden">
+            <h2 style="color: #333;">Thank You!</h2>
+            <p>Your workflow state has been successfully updated.</p>
+            <!-- <p>Redirecting to the homepage...</p> -->
+        </div>
+
+    </div>
+</body>
+
+</html>
