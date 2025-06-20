@@ -837,6 +837,12 @@
 // }
 
 frappe.ui.form.on('Consignment Note', {
+    customer_name: function (frm) {
+        frm.set_value('payers_name', frm.doc.customer_name);
+        console.log(frm.doc.customer_name);
+        console.log(frm.doc.payers_name);
+         frm.set_value('shipping_company_name', frm.doc.customer_name);
+    },
     origin_branch: function (frm) {
         if (frm.doc.origin_branch == frm.doc.destination_branch) {
             frm.set_value('origin_branch', "");

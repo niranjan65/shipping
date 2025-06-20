@@ -988,6 +988,7 @@ frappe.ui.form.on('Manifest Order', {
     
     refresh: function(frm) {
         // Add Hold/Unhold button
+        console.log("Adding Hold/Unhold button");
         add_hold_button(frm);
         
         // Skip remaining operations if we're processing a state change

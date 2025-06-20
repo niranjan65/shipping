@@ -119,8 +119,7 @@
    "fieldtype": "Link",
    "label": "Service Type",
    "options": "Service Type",
-   "reqd": 1,
-   "set_only_once": 1
+   "reqd": 1
   },
   {
    "fieldname": "column_break_5",
@@ -177,22 +176,22 @@
   {
    "fieldname": "shippers_details_section",
    "fieldtype": "Section Break",
-   "label": "SHIPPER'S DETAILS"
+   "label": "SENDER'S DETAILS"
   },
   {
    "fieldname": "shipping_company_name",
    "fieldtype": "Data",
-   "label": "Shipping Company Name"
+   "label": "Sender Company Name"
   },
   {
    "fieldname": "address",
    "fieldtype": "Small Text",
-   "label": "Shipper's Address"
+   "label": "Sender's  Address"
   },
   {
    "fieldname": "shipping_city",
    "fieldtype": "Data",
-   "label": "Shipping City"
+   "label": "Sender City"
   },
   {
    "fieldname": "column_break_r8rd",
@@ -201,22 +200,22 @@
   {
    "fieldname": "contact_name",
    "fieldtype": "Data",
-   "label": "Shipper Contact Name"
+   "label": "Sender Contact Name"
   },
   {
    "fieldname": "contact_number",
    "fieldtype": "Data",
-   "label": "Shipper Contact Number"
+   "label": "Sender Contact Number"
   },
   {
    "fieldname": "shipper_email",
    "fieldtype": "Data",
-   "label": "Shipper Email"
+   "label": "Sender Email"
   },
   {
    "fieldname": "shipping_post_code",
    "fieldtype": "Data",
-   "label": "Shipping Post Code"
+   "label": "Sender Post Code"
   },
   {
    "fieldname": "receivers_details_section",
@@ -331,8 +330,7 @@
    "no_copy": 1,
    "options": "Consignment Note",
    "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "tracking_id",
@@ -492,8 +490,8 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-14 20:49:02.795955",
- "modified_by": "Administrator",
+ "modified": "2025-06-18 17:57:25.876104",
+ "modified_by": "sharda.k@anantdv.com",
  "module": "Shipping",
  "name": "Consignment Note",
  "naming_rule": "Expression (old style)",
@@ -512,6 +510,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

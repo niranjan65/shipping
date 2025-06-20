@@ -111,6 +111,7 @@ The form is designed to be user-friendly and responsive, with clear labels and i
                 });
 
                 const result = await response.json();
+                console.log("Result Message:", result);
                 if (result.message) {
                     document.getElementById("action").value = result.message.current_state;
                     document.getElementById("customer_name").value = result.message.customer_name;

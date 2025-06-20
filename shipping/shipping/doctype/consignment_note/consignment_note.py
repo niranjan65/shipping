@@ -29,13 +29,21 @@ class ConsignmentNote(Document):
 
 
 
-	def onload(self):
-		# current_state = self.workflow_state
-		# next_state = self.get_next_workflow_state(current_state)
-		href = "https://adv.anantdv.com/log"+"?id="+str(self.name)
-		self.qr_code = get_qr_code(href)
+	# def onload(self):
+	# 	# current_state = self.workflow_state
+	# 	# next_state = self.get_next_workflow_state(current_state)
+	# 	# href = "https://adv.anantdv.com/log"+"?id="+str(self.name)
+	# 	href = "http://159.223.77.254/log"+"?id="+str(self.name)
+	# 	self.qr_code = get_qr_code(href)
+	# 	data = get_qr_code(href)
+	# 	frappe.db.sql(f""" update `tabConsignment Note` set qr_code = "{data}" where name = '{self.qr_code}' ; """,as_dict = 1)
+	# 	frappe.db.commit()
+
+	def validate(self):
+		href = "https://adv.anantdv.com/log" + "?id=" + str(self.name)
 		data = get_qr_code(href)
-		frappe.db.sql(f""" update `tabConsignment Note` set qr_code = "{data}" where name = '{self.qr_code}' ; """,as_dict = 1)
+		self.qr_code = data
+		frappe.db.set_value("Consignment Note", self.name, "qr_code", data)
 		frappe.db.commit()
 
 

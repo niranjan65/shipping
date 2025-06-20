@@ -11,7 +11,7 @@ def get_workflow_state(consignment_note_id):
 
     transitions = frappe.get_all(
         "Workflow Transition",
-        filters={"parent": "Consignment Note Workflow", "state": current_state},
+        filters={"parent": "Consignment Note 2.0", "state": current_state},
         fields=["action", "next_state"]
     )
 
@@ -75,7 +75,7 @@ def get_workflow_state_man(manifest_order_id):
 
     transitions = frappe.get_all(
         "Workflow Transition",
-        filters={"parent": "Manifest Order", "state": current_state},
+        filters={"parent": "Manifest Order New", "state": current_state},
         fields=["action", "next_state"]
     )
 
