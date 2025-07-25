@@ -253,6 +253,8 @@ frappe.ui.form.on('Consignment Note', {
             }
             
         }
+
+        
     },
 
     recheck_shipment_details: function (frm) {
@@ -446,7 +448,7 @@ frappe.ui.form.on('Consignment Note', {
         }
         
          if(frm.doc.workflow_state === "Delivered To Customer" ){
-            frm.set_value('custom_proof_of_delivery', modified);
+            frm.set_value('custom_proof_of_delivery', frm.doc.modified);
          }
         // Check for each dialog-triggering state separately
         if (frm.doc.workflow_state === "Assigned for Pickup") {
