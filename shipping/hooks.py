@@ -146,6 +146,11 @@ webserver_headers = [
 # }
 
 # Document Events
+# doc_events = {
+#     "*": {
+#         "before_save": "shipping.shipping.api.save",
+#     }
+# }
 # ---------------
 # Hook on document methods and events
 

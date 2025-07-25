@@ -10,6 +10,7 @@
   "title",
   "air_way_bill",
   "qr_code",
+  "print_qr_code",
   "customer_type",
   "service_type",
   "service_type_feature",
@@ -438,7 +439,6 @@
    "default": "0",
    "fieldname": "dispatch_flag",
    "fieldtype": "Check",
-   "hidden": 1,
    "label": "Dispatch_flag"
   },
   {
@@ -482,16 +482,21 @@
   {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "sales_invoice",
    "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "print_qr_code",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Print QR Code"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-18 17:57:25.876104",
- "modified_by": "sharda.k@anantdv.com",
+ "modified": "2025-07-14 18:02:58.176889",
+ "modified_by": "niranjan.ks@anantdv.com",
  "module": "Shipping",
  "name": "Consignment Note",
  "naming_rule": "Expression (old style)",
@@ -506,6 +511,16 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driver",
    "share": 1,
    "write": 1
   }

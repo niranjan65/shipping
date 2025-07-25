@@ -1,3 +1,4 @@
+import frappe
 import logging
 import requests
 from PIL import Image
@@ -10,6 +11,7 @@ from base64 import b64encode
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@frappe.whitelist(allow_guest=True)
 def get_qr_code(data: str, logo_url: str = None) -> str:
     qr_code_bytes = get_qr_code_bytes(data, logo_url, format="PNG")
     base_64_string = bytes_to_base64_string(qr_code_bytes)

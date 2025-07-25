@@ -1,0 +1,153 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "PDS-.####",
+ "creation": "2025-03-05 17:34:14.636217",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "consignment_id",
+  "datetime",
+  "column_break_ryhd",
+  "assigned_to",
+  "manifest_id",
+  "priority",
+  "section_break_0qvd",
+  "origin",
+  "destination",
+  "company_branch",
+  "column_break_q2b9",
+  "pickup_branch",
+  "delivery_branch",
+  "column_break_0otq",
+  "pickup_address",
+  "delivery_address"
+ ],
+ "fields": [
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "consignment_id",
+   "fieldtype": "Data",
+   "label": "Consignment ID"
+  },
+  {
+   "fieldname": "datetime",
+   "fieldtype": "Datetime",
+   "label": "Date/Time"
+  },
+  {
+   "fieldname": "column_break_ryhd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "manifest_id",
+   "fieldtype": "Data",
+   "label": "Manifest ID"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "\nLow\nMedium\nHigh"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "section_break_0qvd",
+   "fieldtype": "Section Break",
+   "label": "e"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Link",
+   "label": "Origin",
+   "options": "Location"
+  },
+  {
+   "fieldname": "destination",
+   "fieldtype": "Link",
+   "label": "Destination",
+   "options": "Location"
+  },
+  {
+   "fieldname": "company_branch",
+   "fieldtype": "Link",
+   "label": "Company Branch",
+   "options": "Branch"
+  },
+  {
+   "fieldname": "column_break_q2b9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pickup_branch",
+   "fieldtype": "Link",
+   "label": "Pickup Branch",
+   "options": "Customer Branch"
+  },
+  {
+   "fieldname": "delivery_branch",
+   "fieldtype": "Link",
+   "label": "Delivery Branch",
+   "options": "Customer Branch"
+  },
+  {
+   "fieldname": "column_break_0otq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pickup_address",
+   "fieldtype": "Link",
+   "label": "Pickup Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "delivery_address",
+   "fieldtype": "Link",
+   "label": "Delivery Address",
+   "options": "Address"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-14 17:10:47.944125",
+ "modified_by": "Administrator",
+ "module": "Shipping",
+ "name": "Pickup-Delivery Schedule",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

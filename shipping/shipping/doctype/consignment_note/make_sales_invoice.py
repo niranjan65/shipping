@@ -118,7 +118,11 @@ def make_invoice(data):
         "origin": data.get("origin"),
         "destination": data.get("destination"),
         "total_weight": float(data.get("total_weight")),
-        "air_way_bill": data.get("name")
+        "air_way_bill": data.get("name"),
+        "shipping_company_name": data.get("shipping_company_name"),
+        "shipping_address": data.get("address"),
+        "shipping_city":data.get("shipping_city"),
+
     })
     origin_dest_code = frappe.db.get_value(
         "Origin Destination Map",
@@ -166,8 +170,9 @@ def make_invoice(data):
         si.append("items", {
             # "item_name": "Documentation Fee",
             "item_code": "Airfreight-KG",
-            "uom": "Unit",
+            "uom": "Kg",
             "qty": 1,
+            "weight": data.get("total_weight"),
             "rate": rate,
             "amount": rate,
             })
@@ -178,6 +183,15 @@ def make_invoice(data):
             "qty": 1,
             "rate": 45,
             "amount": 45,
+            })
+        service_charge = round((rate + 45) * 0, 2)
+        si.append("items", {
+            # "item_name": "Documentation Fee",
+            "item_code": "Service Charge",
+            "uom": "Unit",
+            "qty": 1,
+            "rate": service_charge,
+            "amount": service_charge,
             })
         si.taxes_and_charges = "GST - CAL PNG"
         gst_template = frappe.get_doc("Sales Taxes and Charges Template", "GST - CAL PNG")
@@ -194,8 +208,9 @@ def make_invoice(data):
         si.append("items", {
             # "item_name": "Documentation Fee",
             "item_code": "Airfreight-KG",
-            "uom": "Unit",
+            "uom": "Kg",
             "qty": 1,
+            "weight": data.get("total_weight"),
             "rate": rate,
             "amount": rate,
             })
@@ -213,7 +228,7 @@ def make_invoice(data):
     # si.base_grand_total = float(rate)
     # si.grand_total = float(rate)
     # si.total = float(rate)
-    si.save()
+    # si.save()
     si.submit()
     frappe.db.sql("""
         UPDATE `tabConsignment Note`

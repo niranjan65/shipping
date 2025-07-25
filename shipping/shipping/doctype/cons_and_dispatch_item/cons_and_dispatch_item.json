@@ -14,6 +14,7 @@
   "net_weight",
   "dispatch",
   "airline_name",
+  "bag_no",
   "length",
   "width",
   "height",
@@ -22,7 +23,7 @@
  ],
  "fields": [
   {
-   "columns": 2,
+   "columns": 1,
    "fieldname": "awb",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -30,21 +31,21 @@
    "width": "3"
   },
   {
-   "columns": 2,
+   "columns": 1,
    "fieldname": "destination",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Destination"
   },
   {
-   "columns": 2,
+   "columns": 1,
    "fieldname": "no_of_pieces",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "No of pieces"
   },
   {
-   "columns": 2,
+   "columns": 1,
    "fieldname": "origin",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -58,12 +59,13 @@
    "label": "Net Weight"
   },
   {
-   "columns": 2,
+   "columns": 1,
+   "default": "No",
    "fieldname": "dispatch",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Dispatch",
-   "options": "\nYes\nNo",
+   "options": "No\nYes",
    "reqd": 1
   },
   {
@@ -105,18 +107,25 @@
    "label": "Height"
   },
   {
-   "columns": 2,
+   "columns": 1,
    "fieldname": "airline_name",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Airline Name",
-   "mandatory_depends_on": "eval:doc.dispatch == \"Yes\"\r\n",
+   "mandatory_depends_on": "eval:doc.dispatch==\"Yes\"",
    "options": "Airline Name"
+  },
+  {
+   "fieldname": "bag_no",
+   "fieldtype": "Select",
+   "label": "Bag No.",
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-19 10:40:10.376865",
+ "modified": "2025-06-30 18:31:57.550020",
  "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Cons and Dispatch Item",

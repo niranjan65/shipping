@@ -883,7 +883,7 @@ frappe.ui.form.on('Manifest Order', {
         
         // Only set prepared_by on new docs to avoid unnecessary form changes
         if (frm.is_new()) {
-            calculate_totals(frm);
+            // calculate_totals(frm);
             
             frappe.call({
                 method: "frappe.client.get",
@@ -893,6 +893,7 @@ frappe.ui.form.on('Manifest Order', {
                 },
                 callback: function(r) {
                     frm.set_value("prepared_by", r.message["full_name"]);
+                    
                 }
             });
         }
@@ -909,24 +910,26 @@ frappe.ui.form.on('Manifest Order', {
         }
         
         // Setup conflict resolution handler
-        setup_conflict_handler(frm);
+        // setup_conflict_handler(frm);
+
+        // cur_frm.save_doc()
     },
     
-    shipment_details_add: function(frm, cdt, cdn) {
-        calculate_totals(frm);
-    },
+    // shipment_details_add: function(frm, cdt, cdn) {
+    //     calculate_totals(frm);
+    // },
     
-    shipment_details_remove: function(frm, cdt, cdn) {
-        calculate_totals(frm);
-    },
+    // shipment_details_remove: function(frm, cdt, cdn) {
+    //     calculate_totals(frm);
+    // },
     
-    shipment_details: function(frm, cdt, cdn) {
-        calculate_totals(frm);
-    },
+    // shipment_details: function(frm, cdt, cdn) {
+    //     calculate_totals(frm);
+    // },
     
     validate: function(frm) {
-        // Ensure totals are calculated before saving
-        calculate_totals(frm);
+        // Ensure totals are calculated before savinga
+        // calculate_totals(frm);
     },
     
     after_save: function(frm) {
@@ -1176,23 +1179,31 @@ function safe_set_value(doctype, docname, field, value, callback, attempts = 0) 
 // Function to add the Hold/Unhold button
 function add_hold_button(frm) {
     // Only add button if document is not new and has been saved
-    if (frm.is_new()) return;
+    // if (frm.is_new()) return;
     
     // Only show hold button in the "Delivered to Origin Airport" state
-    if (frm.doc.workflow_state !== "Delivered to Origin Airport") {
-        return;
+    if (frm.doc.workflow_state == "Delivered to Origin Airport") {
+        // return;
+        if (!frm.doc.is_on_hold) {
+        frm.add_custom_button(__('Hold Shipment'), function() {
+            if(!frm.doc.reason_for_hold) {
+                frappe.throw(__('Please provide a reason for holding the shipment.'));
+                return;
+            }
+            if(frm.doc.reason_for_hold) {
+
+                set_hold_status(frm, true);
+            }
+        }).addClass('btn-danger');
+        } else {
+            frm.add_custom_button(__('Unhold Shipment'), function() {
+                set_hold_status(frm, false);
+            }).addClass('btn-success');
+        }
     }
     
     // Add the Hold/Unhold button based on current status
-    if (!frm.doc.is_on_hold) {
-        frm.add_custom_button(__('Hold Shipment'), function() {
-            set_hold_status(frm, true);
-        }).addClass('btn-danger');
-    } else {
-        frm.add_custom_button(__('Unhold Shipment'), function() {
-            set_hold_status(frm, false);
-        }).addClass('btn-success');
-    }
+    
 }
 
 // Function to set hold status and update consignment notes
@@ -1208,14 +1219,34 @@ function set_hold_status(frm, hold_status) {
             // First save the document to ensure field is updated
             frm.save().then(() => {
                 // Update all consignment notes with hold/unhold status
-                update_hold_status_in_consignments(frm, hold_status);
+                // update_hold_status_in_consignments(frm, hold_status);
+                frappe.call({
+                    method: "shipping.shipping.doctype.manifest_order.manifest_order.update_hold_status_in_consignments",
+                    args: {
+                        doc_data:cur_frm.doc,
+                        status_check:hold_status
+                    },
+                    callback: function(r) {
+                        console.log(r)
+                        frappe.show_alert({
+                            message: hold_status ?
+                                __('Manifest has been put on hold') :
+                                __('Hold has been removed, normal processing resumed'),
+                            indicator: hold_status ? 'red' : 'green'
+                        });
+                    },
+                    error: function (r) {
+                        // frappe.throw({
+                        //     message: hold_status ?
+                        //         __('Manifest has been put on hold') :
+                        //         __('Hold has been removed, normal processing resumed'),
+                        //     indicator: hold_status ? 'red' : 'green'
+                        // });
+                    }
                 
-                frappe.show_alert({
-                    message: hold_status ? 
-                        __('Manifest has been put on hold') : 
-                        __('Hold has been removed, normal processing resumed'),
-                    indicator: hold_status ? 'red' : 'green'
-                });
+                })
+                
+                
             }).catch((err) => {
                 // If we have a conflict error, reload and try again
                 if (err && err.message && err.message.includes("Document has been modified")) {
@@ -1223,9 +1254,9 @@ function set_hold_status(frm, hold_status) {
                     frm.reload_doc();
                     
                     // Set a timeout to try again after reload
-                    setTimeout(() => {
-                        set_hold_status(frm, hold_status);
-                    }, 1500);
+                    // setTimeout(() => {
+                    //     set_hold_status(frm, hold_status);
+                    // }, 1500);
                 } else {
                     frappe.throw(__('Could not update hold status: ') + err.message);
                 }
@@ -1297,7 +1328,7 @@ function update_hold_status_in_consignments(frm, hold_status) {
                             }
                             
                             // Save the document with retry logic
-                            save_doc_with_retry(doc, resolve);
+                            // save_doc_with_retry(doc, resolve);
                         });
                     } else {
                         console.error(`Could not find consignment note with ID: ${awb}`);
@@ -1317,114 +1348,114 @@ function update_hold_status_in_consignments(frm, hold_status) {
 }
 
 // Function to save document with retry mechanism
-function save_doc_with_retry(doc, callback, attempts = 0) {
-    const maxAttempts = 3;
+// function save_doc_with_retry(doc, callback, attempts = 0) {
+//     const maxAttempts = 3;
     
-    frappe.call({
-        method: "frappe.desk.form.save.savedocs",
-        args: {
-            doc: doc,
-            action: "Save"
-        },
-        callback: function(r) {
-            if (r.message) {
-                console.log(`Successfully saved document ${doc.name}`);
-                if (callback) callback(true);
-            } else {
-                console.error(`Failed to save document ${doc.name}`);
-                if (callback) callback(false);
-            }
-        },
-        error: function(err) {
-            console.error(`Error saving document ${doc.name}:`, err);
+//     frappe.call({
+//         method: "frappe.desk.form.save.savedocs",
+//         args: {
+//             doc: doc,
+//             action: "Save"
+//         },
+//         callback: function(r) {
+//             if (r.message) {
+//                 console.log(`Successfully saved document ${doc.name}`);
+//                 if (callback) callback(true);
+//             } else {
+//                 console.error(`Failed to save document ${doc.name}`);
+//                 if (callback) callback(false);
+//             }
+//         },
+//         error: function(err) {
+//             console.error(`Error saving document ${doc.name}:`, err);
             
-            // Check if this is a conflict error and we haven't exceeded max attempts
-            if (err && err.message && 
-                err.message.includes("Document has been modified") && 
-                attempts < maxAttempts) {
+//             // Check if this is a conflict error and we haven't exceeded max attempts
+//             if (err && err.message && 
+//                 err.message.includes("Document has been modified") && 
+//                 attempts < maxAttempts) {
                 
-                console.log(`Retrying save for ${doc.name} (Attempt ${attempts + 1}/${maxAttempts})`);
+//                 console.log(`Retrying save for ${doc.name} (Attempt ${attempts + 1}/${maxAttempts})`);
                 
-                // Fetch the latest version and try again
-                frappe.model.with_doc(doc.doctype, doc.name, function() {
-                    var fresh_doc = frappe.model.get_doc(doc.doctype, doc.name);
+//                 // Fetch the latest version and try again
+//                 frappe.model.with_doc(doc.doctype, doc.name, function() {
+//                     var fresh_doc = frappe.model.get_doc(doc.doctype, doc.name);
                     
-                    // Transfer our child table entries to the fresh doc
-                    if (doc.tracking_table && doc.tracking_table.length > 0) {
-                        // Get the last entry we tried to add
-                        const lastEntry = doc.tracking_table[doc.tracking_table.length - 1];
+//                     // Transfer our child table entries to the fresh doc
+//                     if (doc.tracking_table && doc.tracking_table.length > 0) {
+//                         // Get the last entry we tried to add
+//                         const lastEntry = doc.tracking_table[doc.tracking_table.length - 1];
                         
-                        // Check if it already exists in the fresh document
-                        const entryExists = fresh_doc.tracking_table && 
-                                           fresh_doc.tracking_table.some(row => 
-                                               row.status === lastEntry.status && 
-                                               row.manifest_id === lastEntry.manifest_id && 
-                                               Math.abs(moment(row.timestamp).diff(moment(lastEntry.timestamp), 'minutes')) < 5);
+//                         // Check if it already exists in the fresh document
+//                         const entryExists = fresh_doc.tracking_table && 
+//                                            fresh_doc.tracking_table.some(row => 
+//                                                row.status === lastEntry.status && 
+//                                                row.manifest_id === lastEntry.manifest_id && 
+//                                                Math.abs(moment(row.timestamp).diff(moment(lastEntry.timestamp), 'minutes')) < 5);
                         
-                        // If it doesn't exist, add it to the fresh document
-                        if (!entryExists) {
-                            var new_row = frappe.model.add_child(fresh_doc, "Tracking Table", "tracking_table");
-                            new_row.status = lastEntry.status;
-                            new_row.timestamp = get_utc_timestamp(); // Fresh timestamp
-                            new_row.manifest_id = lastEntry.manifest_id;
-                            new_row.notes = lastEntry.notes;
-                            if (lastEntry.assigned_to) new_row.assigned_to = lastEntry.assigned_to;
-                        }
-                    }
+//                         // If it doesn't exist, add it to the fresh document
+//                         if (!entryExists) {
+//                             var new_row = frappe.model.add_child(fresh_doc, "Tracking Table", "tracking_table");
+//                             new_row.status = lastEntry.status;
+//                             new_row.timestamp = get_utc_timestamp(); // Fresh timestamp
+//                             new_row.manifest_id = lastEntry.manifest_id;
+//                             new_row.notes = lastEntry.notes;
+//                             if (lastEntry.assigned_to) new_row.assigned_to = lastEntry.assigned_to;
+//                         }
+//                     }
                     
-                    // Also transfer is_manifest_check if it was set
-                    if (doc.is_manifest_check) {
-                        fresh_doc.is_manifest_check = 1;
-                    }
+//                     // Also transfer is_manifest_check if it was set
+//                     if (doc.is_manifest_check) {
+//                         fresh_doc.is_manifest_check = 1;
+//                     }
                     
-                    // Try saving again with the fresh document
-                    setTimeout(() => {
-                        save_doc_with_retry(fresh_doc, callback, attempts + 1);
-                    }, 1000 * (attempts + 1)); // Exponential backoff
-                });
-            } else {
-                // Give up after max attempts or for other errors
-                if (callback) callback(false);
-            }
-        }
-    });
-}
+//                     // Try saving again with the fresh document
+//                     setTimeout(() => {
+//                         save_doc_with_retry(fresh_doc, callback, attempts + 1);
+//                     }, 1000 * (attempts + 1)); // Exponential backoff
+//                 });
+//             } else {
+//                 // Give up after max attempts or for other errors
+//                 if (callback) callback(false);
+//             }
+//         }
+//     });
+// }
 
 // Function to calculate totals for the manifest
 function calculate_totals(frm) {
-    try {
-        // Skip calculation if doc is not fully initialized
-        if (!frm.doc || !frm.doc.shipment_details) {
-            return;
-        }
+    // try {
+    //     // Skip calculation if doc is not fully initialized
+    //     if (!frm.doc || !frm.doc.shipment_details) {
+    //         return;
+    //     }
         
-        let total_weight = 0;
-        let total_pieces = 0;
+    //     let total_weight = 0;
+    //     let total_pieces = 0;
 
-        if (Array.isArray(frm.doc.shipment_details)) {
-            frm.doc.shipment_details.forEach(function(item) {
-                if (item.weight) {
-                    total_weight += parseFloat(item.weight);
-                }
-                if (item.pieces_number) {
-                    total_pieces += parseInt(item.pieces_number);
-                }
-            });
-        }
+    //     if (Array.isArray(frm.doc.shipment_details)) {
+    //         frm.doc.shipment_details.forEach(function(item) {
+    //             if (item.weight) {
+    //                 total_weight += parseFloat(item.weight);
+    //             }
+    //             if (item.pieces_number) {
+    //                 total_pieces += parseInt(item.pieces_number);
+    //             }
+    //         });
+    //     }
 
-        // Only update form values if the calculated values are different
-        // to prevent unnecessary form state changes
-        if (frm.doc.total_weight !== total_weight) {
-            frm.set_value('total_weight', total_weight);
-        }
-        if (frm.doc.total_no_of_pieces !== total_pieces) {
-            frm.set_value('total_no_of_pieces', total_pieces);
-        }
+    //     // Only update form values if the calculated values are different
+    //     // to prevent unnecessary form state changes
+    //     if (frm.doc.total_weight !== total_weight) {
+    //         frm.set_value('total_weight', total_weight);
+    //     }
+    //     // if (frm.doc.total_no_of_pieces !== total_pieces) {
+    //     //     frm.set_value('total_no_of_pieces', total_pieces);
+    //     // }
 
-        console.log("Calculated totals: weight =", total_weight, "pieces =", total_pieces);
-    } catch (error) {
-        console.error("Error in calculate_totals:", error);
-    }
+    //     console.log("Calculated totals: weight =", total_weight, "pieces =", total_pieces);
+    // } catch (error) {
+    //     console.error("Error in calculate_totals:", error);
+    // }
 }
 
 // Handle delivery assignment dialog
@@ -1475,6 +1506,7 @@ function handle_delivery_dialog(frm) {
             ],
             primary_action_label: __('Assign'),
             primary_action: function(values) {
+                console.log("Primary action clicked with values:", values);
                 // Mark we're in a dialog processing operation
                 frm.processing_dialog = true;
                 
@@ -1490,112 +1522,8 @@ function handle_delivery_dialog(frm) {
                 new_doc.status = frm.doc.workflow_state;
                 new_doc.priority = values.priority;
                 new_doc.pickup_datetime = values.datetime;
-                
-                // Process all consignment notes in the manifest
-                if (frm.doc.shipment_details && frm.doc.shipment_details.length > 0) {
-                    // Count of successful updates
-                    let updatesCompleted = 0;
-                    
-                    // Total AWBs to process
-                    const consignmentNotes = frm.doc.shipment_details.map(item => item.cal_awb);
-                    const uniqueConsignmentNotes = [...new Set(consignmentNotes.filter(Boolean))]; // Remove nulls and duplicates
-                    const totalAwbs = uniqueConsignmentNotes.length;
-                    
-                    if (totalAwbs === 0) {
-                        // No valid AWBs to process, just create the schedule
-                        save_pickup_delivery_schedule(new_doc);
-                        return;
-                    }
-                    
-                    // Create tracking entries for each AWB
-                    uniqueConsignmentNotes.forEach(awb => {
-                        // Check if AWB is valid format
-                        if (!awb || typeof awb !== 'string' || awb.trim() === '') {
-                            console.log("Skipping invalid AWB:", awb);
-                            updatesCompleted++;
-                            checkIfComplete();
-                            return;
-                        }
-                        
-                        frappe.call({
-                            method: "frappe.client.get_value",
-                            args: {
-                                doctype: "Consignment Note",
-                                filters: { "name": awb.trim() },
-                                fieldname: ["name"],
-                                // Force no-cache to get fresh data
-                                no_cache: 1
-                            },
-                            callback: function(result) {
-                                if (result.message) {
-                                    // Get the document for updating
-                                    frappe.model.with_doc("Consignment Note", awb.trim(), function() {
-                                        var doc = frappe.model.get_doc("Consignment Note", awb.trim());
-                                        
-                                        // Check if ANY tracking entry exists for this manifest and workflow state
-                                        // (with or without assigned_to value)
-                                        let anyStatusExists = false;
-                                        if (doc.tracking_table && doc.tracking_table.length > 0) {
-                                            anyStatusExists = doc.tracking_table.some(function(row) {
-                                                return (row.status === `${frm.doc.workflow_state}` || 
-                                                       row.status === ` ${frm.doc.workflow_state}`) && 
-                                                      row.manifest_id === frm.doc.name;
-                                            });
-                                        }
-                                        
-                                        // If any status entry exists, remove it first
-                                        if (anyStatusExists) {
-                                            console.log(`Removing existing entry for ${awb} before adding new one with assigned_to`);
-                                            // Filter out the existing entries for this state and manifest
-                                            doc.tracking_table = doc.tracking_table.filter(function(row) {
-                                                return !(
-                                                    (row.status === `${frm.doc.workflow_state}` || 
-                                                     row.status === ` ${frm.doc.workflow_state}`) && 
-                                                    row.manifest_id === frm.doc.name
-                                                );
-                                            });
-                                        }
-                                        
-                                        // Always add a fresh row with the assigned_to value
-                                        var new_row = frappe.model.add_child(doc, "Tracking Table", "tracking_table");
-                                        new_row.status = `${frm.doc.workflow_state}`;
-                                        new_row.timestamp = get_utc_timestamp(); // Use UTC timestamp
-                                        new_row.manifest_id = frm.doc.name;
-                                        new_row.assigned_to = assigned_to_email;
-                                        
-                                        // Save the document with retry logic
-                                        save_doc_with_retry(doc, function(success) {
-                                            if (success) {
-                                                console.log(`Successfully updated tracking for ${awb}`);
-                                            } else {
-                                                console.error(`Failed to update tracking for ${awb}`);
-                                            }
-                                            updatesCompleted++;
-                                            checkIfComplete();
-                                        });
-                                    });
-                                } else {
-                                    console.error(`Could not find consignment note with ID: ${awb}`);
-                                    updatesCompleted++;
-                                    checkIfComplete();
-                                }
-                            }
-                        });
-                    });
-                    
-                    function checkIfComplete() {
-                        if (updatesCompleted >= totalAwbs) {
-                            // All AWBs processed, now save the Pickup-Delivery Schedule
-                            save_pickup_delivery_schedule(new_doc);
-                        }
-                    }
-                } else {
-                    // No shipment details, just create the Pickup-Delivery Schedule
-                    save_pickup_delivery_schedule(new_doc);
-                }
-                
-                function save_pickup_delivery_schedule(doc) {
-                    frappe.db.insert(doc)
+
+                 frappe.db.insert(new_doc)
                     .then(() => {
                         console.log("Pickup-Delivery Schedule created");
                         
@@ -1662,7 +1590,180 @@ function handle_delivery_dialog(frm) {
                             frm.processing_dialog = false;
                         }
                     });
-                }
+                
+                // Process all consignment notes in the manifest
+                // if (frm.doc.shipment_details && frm.doc.shipment_details.length > 0) {
+                //     // Count of successful updates
+                //     let updatesCompleted = 0;
+                    
+                //     // Total AWBs to process
+                //     const consignmentNotes = frm.doc.shipment_details.map(item => item.cal_awb);
+                //     const uniqueConsignmentNotes = [...new Set(consignmentNotes.filter(Boolean))]; // Remove nulls and duplicates
+                //     const totalAwbs = uniqueConsignmentNotes.length;
+                    
+                //     if (totalAwbs === 0) {
+                //         // No valid AWBs to process, just create the schedule
+                //         save_pickup_delivery_schedule(new_doc);
+                //         return;
+                //     }
+                    
+                //     // Create tracking entries for each AWB
+                //     uniqueConsignmentNotes.forEach(awb => {
+                //         // Check if AWB is valid format
+                //         if (!awb || typeof awb !== 'string' || awb.trim() === '') {
+                //             console.log("Skipping invalid AWB:", awb);
+                //             updatesCompleted++;
+                //             checkIfComplete();
+                //             return;
+                //         }
+                        
+                //         frappe.call({
+                //             method: "frappe.client.get_value",
+                //             args: {
+                //                 doctype: "Consignment Note",
+                //                 filters: { "name": awb.trim() },
+                //                 fieldname: ["name"],
+                //                 // Force no-cache to get fresh data
+                //                 no_cache: 1
+                //             },
+                //             callback: function(result) {
+                //                 if (result.message) {
+                //                     // Get the document for updating
+                //                     frappe.model.with_doc("Consignment Note", awb.trim(), function() {
+                //                         var doc = frappe.model.get_doc("Consignment Note", awb.trim());
+                                        
+                //                         // Check if ANY tracking entry exists for this manifest and workflow state
+                //                         // (with or without assigned_to value)
+                //                         let anyStatusExists = false;
+                //                         if (doc.tracking_table && doc.tracking_table.length > 0) {
+                //                             anyStatusExists = doc.tracking_table.some(function(row) {
+                //                                 return (row.status === `${frm.doc.workflow_state}` || 
+                //                                        row.status === ` ${frm.doc.workflow_state}`) && 
+                //                                       row.manifest_id === frm.doc.name;
+                //                             });
+                //                         }
+                                        
+                //                         // If any status entry exists, remove it first
+                //                         if (anyStatusExists) {
+                //                             console.log(`Removing existing entry for ${awb} before adding new one with assigned_to`);
+                //                             // Filter out the existing entries for this state and manifest
+                //                             doc.tracking_table = doc.tracking_table.filter(function(row) {
+                //                                 return !(
+                //                                     (row.status === `${frm.doc.workflow_state}` || 
+                //                                      row.status === ` ${frm.doc.workflow_state}`) && 
+                //                                     row.manifest_id === frm.doc.name
+                //                                 );
+                //                             });
+                //                         }
+                                        
+                //                         // Always add a fresh row with the assigned_to value
+                //                         // var new_row = frappe.model.add_child(doc, "Tracking Table", "tracking_table");
+                //                         // new_row.status = `${frm.doc.workflow_state}`;
+                //                         // new_row.timestamp = get_utc_timestamp(); // Use UTC timestamp
+                //                         // new_row.manifest_id = frm.doc.name;
+                //                         // new_row.assigned_to = assigned_to_email;
+                                        
+                //                         // Save the document with retry logic
+                //                         // save_doc_with_retry(doc, function(success) {
+                //                         //     if (success) {
+                //                         //         console.log(`Successfully updated tracking for ${awb}`);
+                //                         //     } else {
+                //                         //         console.error(`Failed to update tracking for ${awb}`);
+                //                         //     }
+                //                         //     updatesCompleted++;
+                //                         //     checkIfComplete();
+                //                         // });
+                //                     });
+                //                 } else {
+                //                     console.error(`Could not find consignment note with ID: ${awb}`);
+                //                     updatesCompleted++;
+                //                     checkIfComplete();
+                //                 }
+                //             }
+                //         });
+                //     });
+                    
+                //     function checkIfComplete() {
+                //         if (updatesCompleted >= totalAwbs) {
+                //             // All AWBs processed, now save the Pickup-Delivery Schedule
+                //             save_pickup_delivery_schedule(new_doc);
+                //         }
+                //     }
+                // } else {
+                //     // No shipment details, just create the Pickup-Delivery Schedule
+                //     save_pickup_delivery_schedule(new_doc);
+                // }
+                // save_pickup_delivery_schedule(new_doc);
+                
+                // function save_pickup_delivery_schedule(doc) {
+                //     frappe.db.insert(doc)
+                //     .then(() => {
+                //         console.log("Pickup-Delivery Schedule created");
+                        
+                //         // Close dialog before saving to prevent conflicts
+                //         dialog.hide();
+                        
+                //         // Only save if there were changes
+                //         if (frm.is_dirty()) {
+                //             frm.save().then(() => {
+                //                 frm.reload_doc();
+                //                 frappe.show_alert({
+                //                     message: __('Assignment completed successfully'),
+                //                     indicator: 'green'
+                //                 });
+                //                 frm.processing_dialog = false;
+                //             }).catch(err => {
+                //                 // Handle document conflict gracefully
+                //                 if (err && err.message && err.message.includes("Document has been modified")) {
+                //                     console.log("Document conflict detected. Reloading.");
+                //                     frm.reload_doc();
+                //                     frappe.show_alert({
+                //                         message: __('Assignment completed but document needed refresh'),
+                //                         indicator: 'green'
+                //                     });
+                //                 } else {
+                //                     console.error("Error saving form:", err);
+                //                 }
+                //                 frm.processing_dialog = false;
+                //             });
+                //         } else {
+                //             frappe.show_alert({
+                //                 message: __('Assignment completed successfully'),
+                //                 indicator: 'green'
+                //             });
+                //             frm.processing_dialog = false;
+                //         }
+                //     })
+                //     .catch(err => {
+                //         console.log("Error", err);
+                        
+                //         // If document conflict, retry with fresh data
+                //         if (err && err.message && err.message.includes("Document has been modified")) {
+                //             console.log("Conflict detected. Will retry with fresh data.");
+                            
+                //             // Wait and try again
+                //             setTimeout(() => {
+                //                 // Create a fresh document
+                //                 let fresh_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
+                //                 fresh_doc.assigned_to = assigned_to_email;
+                //                 fresh_doc.origin = frm.doc.origin || values.origin;
+                //                 fresh_doc.origin_airport = values.origin_airport;
+                //                 fresh_doc.manifest_id = frm.doc.name;
+                //                 fresh_doc.status = frm.doc.workflow_state;
+                //                 fresh_doc.priority = values.priority;
+                //                 fresh_doc.pickup_datetime = values.datetime;
+                                
+                //                 save_pickup_delivery_schedule(fresh_doc);
+                //             }, 1500);
+                //         } else {
+                //             frappe.show_alert({
+                //                 message: __('Error creating assignment: ' + err.message),
+                //                 indicator: 'red'
+                //             });
+                //             frm.processing_dialog = false;
+                //         }
+                //     });
+                // }
             },
             onhide: function() {
                 // IMPORTANT: Set a longer timeout to prevent immediate re-showing
@@ -1763,137 +1864,137 @@ function check_and_create_initial_tracking(frm) {
 
 // Function to update consignment tracking for all AWBs in a manifest
 function update_consignment_tracking(frm) {
-    if (!frm.doc.shipment_details || frm.doc.shipment_details.length === 0) {
-        console.log("No shipment details to update tracking for");
-        return;
-    }
+    // if (!frm.doc.shipment_details || frm.doc.shipment_details.length === 0) {
+    //     console.log("No shipment details to update tracking for");
+    //     return;
+    // }
     
     // Skip tracking updates if manifest is on hold
-    if (frm.doc.is_on_hold) {
-        console.log("Skipping tracking update because manifest is on hold");
-        return;
-    }
+    // if (frm.doc.is_on_hold) {
+    //     console.log("Skipping tracking update because manifest is on hold");
+    //     return;
+    // }
     
-    console.log("Updating consignment tracking for workflow state:", frm.doc.workflow_state);
+    // console.log("Updating consignment tracking for workflow state:", frm.doc.workflow_state);
     
     // Get unique AWBs to avoid duplicate updates
-    const consignmentNotes = frm.doc.shipment_details.map(item => item.cal_awb);
-    const uniqueConsignmentNotes = [...new Set(consignmentNotes.filter(Boolean))]; // Remove nulls and duplicates
+    // const consignmentNotes = frm.doc.shipment_details.map(item => item.cal_awb);
+    // const uniqueConsignmentNotes = [...new Set(consignmentNotes.filter(Boolean))]; // Remove nulls and duplicates
     
-    if (uniqueConsignmentNotes.length === 0) {
-        console.log("No valid AWBs to update tracking for");
-        return;
-    }
+    // if (uniqueConsignmentNotes.length === 0) {
+    //     console.log("No valid AWBs to update tracking for");
+    //     return;
+    // }
     
     // Create an array to keep track of all update promises
     let updatePromises = [];
     
     // Update tracking for each AWB
-    uniqueConsignmentNotes.forEach(awb => {
-        // Skip invalid AWBs
-        if (!awb || typeof awb !== 'string' || awb.trim() === '') {
-            console.log("Skipping invalid AWB");
-            return;
-        }
+    // uniqueConsignmentNotes.forEach(awb => {
+    //     // Skip invalid AWBs
+    //     if (!awb || typeof awb !== 'string' || awb.trim() === '') {
+    //         console.log("Skipping invalid AWB");
+    //         return;
+    //     }
         
-        // Create a promise for this update
-        const updatePromise = new Promise((resolve, reject) => {
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "Consignment Note",
-                    filters: { "name": awb.trim() },
-                    fieldname: ["name"],
-                    // Force no-cache to get fresh data
-                    no_cache: 1
-                },
-                callback: function(result) {
-                    if (result.message) {
-                        // Get the document for updating
-                        frappe.model.with_doc("Consignment Note", awb.trim(), function() {
-                            var doc = frappe.model.get_doc("Consignment Note", awb.trim());
+    //     // Create a promise for this update
+    //     const updatePromise = new Promise((resolve, reject) => {
+    //         frappe.call({
+    //             method: "frappe.client.get_value",
+    //             args: {
+    //                 doctype: "Consignment Note",
+    //                 filters: { "name": awb.trim() },
+    //                 fieldname: ["name"],
+    //                 // Force no-cache to get fresh data
+    //                 no_cache: 1
+    //             },
+    //             callback: function(result) {
+    //                 if (result.message) {
+    //                     // Get the document for updating
+    //                     frappe.model.with_doc("Consignment Note", awb.trim(), function() {
+    //                         var doc = frappe.model.get_doc("Consignment Note", awb.trim());
                             
-                            // Check if this status already exists
-                            let statusExists = false;
-                            if (doc.tracking_table && doc.tracking_table.length > 0) {
-                                statusExists = doc.tracking_table.some(function(row) {
-                                    // Improved matching - allow for status with or without spaces
-                                    return (row.status === `${frm.doc.workflow_state}` || 
-                                           row.status === ` ${frm.doc.workflow_state}`) && 
-                                          row.manifest_id === frm.doc.name;
-                                });
-                            }
+    //                         // Check if this status already exists
+    //                         let statusExists = false;
+    //                         if (doc.tracking_table && doc.tracking_table.length > 0) {
+    //                             statusExists = doc.tracking_table.some(function(row) {
+    //                                 // Improved matching - allow for status with or without spaces
+    //                                 return (row.status === `${frm.doc.workflow_state}` || 
+    //                                        row.status === ` ${frm.doc.workflow_state}`) && 
+    //                                       row.manifest_id === frm.doc.name;
+    //                             });
+    //                         }
                             
-                            // If status doesn't exist, add it
-                            if (!statusExists) {
-                                // Add new row to tracking_table child table
-                                var new_row = frappe.model.add_child(doc, "Tracking Table", "tracking_table");
-                                // No space before status
-                                new_row.status = `${frm.doc.workflow_state}`;
-                                new_row.timestamp = get_utc_timestamp(); // Use UTC timestamp
-                                new_row.manifest_id = frm.doc.name;
+    //                         // If status doesn't exist, add it
+    //                         if (!statusExists) {
+    //                             // Add new row to tracking_table child table
+    //                             var new_row = frappe.model.add_child(doc, "Tracking Table", "tracking_table");
+    //                             // No space before status
+    //                             new_row.status = `${frm.doc.workflow_state}`;
+    //                             new_row.timestamp = get_utc_timestamp(); // Use UTC timestamp
+    //                             new_row.manifest_id = frm.doc.name;
                                 
-                                // Special handling for Arrived at Destination Airport
-                                if (frm.doc.workflow_state === "Arrived at Destination Airport") {
-                                    // Set is_manifest_check to 1 directly
-                                    doc.is_manifest_check = 1;
-                                }
+    //                             // Special handling for Arrived at Destination Airport
+    //                             if (frm.doc.workflow_state === "Arrived at Destination Airport") {
+    //                                 // Set is_manifest_check to 1 directly
+    //                                 doc.is_manifest_check = 1;
+    //                             }
                                 
-                                // Save the document with retry mechanism
-                                save_doc_with_retry(doc, function(success) {
-                                    if (success) {
-                                        console.log(`Successfully updated tracking for ${awb}`);
-                                        resolve();
-                                    } else {
-                                        console.error(`Failed to update tracking for ${awb}`);
-                                        resolve(); // Still resolve to continue with other operations
-                                    }
-                                });
-                            } else {
-                                console.log(`Tracking entry already exists for ${awb}`);
+    //                             // Save the document with retry mechanism
+    //                             save_doc_with_retry(doc, function(success) {
+    //                                 if (success) {
+    //                                     console.log(`Successfully updated tracking for ${awb}`);
+    //                                     resolve();
+    //                                 } else {
+    //                                     console.error(`Failed to update tracking for ${awb}`);
+    //                                     resolve(); // Still resolve to continue with other operations
+    //                                 }
+    //                             });
+    //                         } else {
+    //                             console.log(`Tracking entry already exists for ${awb}`);
                                 
-                                // Even if tracking exists, ensure is_manifest_check is set for Arrived at Destination Airport
-                                if (frm.doc.workflow_state === "Arrived at Destination Airport" && !doc.is_manifest_check) {
-                                    doc.is_manifest_check = 1;
+    //                             // Even if tracking exists, ensure is_manifest_check is set for Arrived at Destination Airport
+    //                             if (frm.doc.workflow_state === "Arrived at Destination Airport" && !doc.is_manifest_check) {
+    //                                 doc.is_manifest_check = 1;
                                     
-                                    save_doc_with_retry(doc, function(success) {
-                                        if (success) {
-                                            console.log(`Updated is_manifest_check for ${awb}`);
-                                        } else {
-                                            console.error(`Failed to update is_manifest_check for ${awb}`);
-                                        }
-                                        resolve();
-                                    });
-                                } else {
-                                    resolve();
-                                }
-                            }
-                        });
-                    } else {
-                        console.error(`Could not find consignment note with ID: ${awb}`);
-                        resolve(); // Still resolve to continue with other operations
-                    }
-                }
-            });
-        });
+    //                                 save_doc_with_retry(doc, function(success) {
+    //                                     if (success) {
+    //                                         console.log(`Updated is_manifest_check for ${awb}`);
+    //                                     } else {
+    //                                         console.error(`Failed to update is_manifest_check for ${awb}`);
+    //                                     }
+    //                                     resolve();
+    //                                 });
+    //                             } else {
+    //                                 resolve();
+    //                             }
+    //                         }
+    //                     });
+    //                 } else {
+    //                     console.error(`Could not find consignment note with ID: ${awb}`);
+    //                     resolve(); // Still resolve to continue with other operations
+    //                 }
+    //             }
+    //         });
+    //     });
         
-        updatePromises.push(updatePromise);
-    });
+    //     updatePromises.push(updatePromise);
+    // });
     
     // Wait for all updates to complete before proceeding
-    Promise.all(updatePromises).then(() => {
-        console.log("All tracking updates completed");
+    // Promise.all(updatePromises).then(() => {
+    //     console.log("All tracking updates completed");
         
-        // Only reload if we're in one of these critical states to avoid conflicts
-        if (frm.doc.workflow_state === "Manifest Order Generated" || 
-            frm.doc.workflow_state === "Uplifted" ||
-            frm.doc.workflow_state === "Arrived at Destination Airport") {
+    //     // Only reload if we're in one of these critical states to avoid conflicts
+    //     if (frm.doc.workflow_state === "Manifest Order Generated" || 
+    //         frm.doc.workflow_state === "Uplifted" ||
+    //         frm.doc.workflow_state === "Arrived at Destination Airport") {
             
-            // Use a small delay before reloading to prevent conflicts
-            setTimeout(() => {
-                // Reload the document to get fresh state and avoid conflicts
-                frm.reload_doc();
-            }, 1000);
-        }
-    });
+    //         // Use a small delay before reloading to prevent conflicts
+    //         setTimeout(() => {
+    //             // Reload the document to get fresh state and avoid conflicts
+    //             frm.reload_doc();
+    //         }, 1000);
+    //     }
+    // });
 }
