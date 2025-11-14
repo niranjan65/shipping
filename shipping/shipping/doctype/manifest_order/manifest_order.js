@@ -1036,13 +1036,36 @@ frappe.ui.form.on('Manifest Order', {
                     const updatePromises = [];
                     
                     frm.doc.shipment_details.forEach(element => {
-                        if (element.cal_awb) {
-                            const updatePromise = new Promise((resolve) => {
-                                safe_set_value('Consignment Note', element.cal_awb, 'is_manifest_check', 1, resolve);
-                            });
+                        // if (element.cal_awb) {
+                        //     const updatePromise = new Promise((resolve) => {
+                        //         safe_set_value('Consignment Note', element.cal_awb, 'is_manifest_check', 1, resolve);
+                        //     });
                             
-                            updatePromises.push(updatePromise);
-                        }
+                        //     updatePromises.push(updatePromise);
+                        // }
+
+        if (element.cal_awb) {
+        const updatePromise = new Promise((resolve) => {
+            
+            frappe.call({
+                method: "frappe.client.set_value",
+                args: {
+                    doctype: "Consignment Note",
+                    name: element.cal_awb,
+                    fieldname: {
+                        is_manifest_check: 1,
+                        cons_and_dispatch_no: frm.doc.cons_and_dispatch_no,
+                        manifest_order_no:frm.doc.name
+                    }
+                },
+                callback: function () {
+                    resolve();  
+                }
+            });
+        });
+
+        updatePromises.push(updatePromise);
+    }
                     });
                     
                     // When all updates are done, reload the document
@@ -1093,12 +1116,158 @@ frappe.ui.form.on('Manifest Order', {
         }
     },
     
-    // Add validation before workflow action to enforce mandatory airline AWB number
-    before_workflow_action: function(frm) {
-        // No validation needed, proceed with workflow
-        return true;
+    before_workflow_action: async function (frm) {
+       
+        if (frm.doc.workflow_state === "Assigned For Airport Delivery" || frm.doc.workflow_state === "Delivered to Origin Airport"){
+        
+        const schedules = await frappe.db.get_list('Pickup-Delivery Schedule', {
+                filters: { manifest_id: frm.doc.name },
+                fields: ['name']
+            });
+
+        console.log("scheduled", schedules)
+        if(schedules.length === 0) {
+            location.reload()
+        }
+
+    }
+    },
+});
+
+// frappe.ui.form.on('Shipment Details', {
+    // hold: function (frm, cdt, cdn) {
+    //     console.log("hold shipment");
+
+    //     let row = locals[cdt][cdn];
+        
+    //     // Get the current number of pieces
+        // let no_of_pieces = row.no_of_pieces_on_hold;
+        
+        // if (!no_of_pieces) {
+        //     frappe.msgprint(__('No pieces to hold'));
+        //     return;
+        // }
+        
+        
+        
+        // frappe.msgprint(__('Held {0} pieces', [no_of_pieces]));
+        
+    //     // Save the document
+    //     frm.save();
+    // }
+// });
+
+// frappe.ui.form.on('Shipment Details', {
+//     hold: function(frm, cdt, cdn) {
+//         let row = locals[cdt][cdn];
+
+//              let no_of_pieces = row.no_of_pieces_on_hold;
+        
+//         if (!no_of_pieces) {
+//             frappe.msgprint(__('No pieces to hold'));
+//             return;
+//         }
+        
+        
+        
+//         frappe.msgprint(__('Held {0} pieces', [no_of_pieces]));
+
+//         let grid_row = frm.fields_dict.shipment_details.grid.grid_rows_by_docname[cdn];
+        
+//         if (grid_row && grid_row.wrapper) {
+//             let $wrapper = $(grid_row.wrapper);
+//             let $hold_field = $wrapper.find('[data-fieldname="hold"]');
+//             let $btn = $hold_field.find('button');
+            
+//             if ($btn.text().trim() === "Hold") {
+//                 $btn.text("Unhold");
+//                 frappe.model.set_value(cdt, cdn, 'is_held', 1);
+//             } else {
+//                 $btn.text("Hold");
+//                 frappe.model.set_value(cdt, cdn, 'is_held', 0);
+//             }
+//         }
+//     }
+// });
+
+
+frappe.ui.form.on('Shipment Details', {
+    hold: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        let no_of_pieces = row.no_of_pieces_on_hold;
+        
+        // If currently not held (trying to hold)
+        if (!row.is_held) {
+            if (!no_of_pieces) {
+                frappe.msgprint(__('No pieces to hold'));
+                return;
+            }
+            
+            frappe.msgprint(__('Held {0} pieces', [no_of_pieces]));
+            frappe.model.set_value(cdt, cdn, 'is_held', 1);
+        } 
+        // If currently held (trying to unhold)
+        else {
+            frappe.msgprint(__('Unheld {0} pieces', [no_of_pieces]));
+            frappe.model.set_value(cdt, cdn, 'is_held', 0);
+            frappe.model.set_value(cdt, cdn, 'no_of_pieces_on_hold', 0);
+        }
+        
+        // Update button text
+        update_hold_button(frm, cdn, !row.is_held);
+    },
+    
+    // Refresh button text whenever the grid is rendered
+    shipment_details_add: function(frm, cdt, cdn) {
+        refresh_hold_buttons(frm);
+    },
+    
+    refresh: function(frm) {
+        refresh_hold_buttons(frm);
     }
 });
+
+// Update a single button
+function update_hold_button(frm, cdn, is_held) {
+    let grid_row = frm.fields_dict.shipment_details.grid.grid_rows_by_docname[cdn];
+    
+    if (grid_row && grid_row.wrapper) {
+        let $wrapper = $(grid_row.wrapper);
+        let $hold_field = $wrapper.find('[data-fieldname="hold"]');
+        let $btn = $hold_field.find('button');
+        
+        $btn.text(is_held ? "Unhold" : "Hold");
+    }
+}
+
+// Refresh all buttons based on is_held field
+function refresh_hold_buttons(frm) {
+    setTimeout(() => {
+        if (frm.doc.shipment_details) {
+            frm.doc.shipment_details.forEach(row => {
+                if (row.name) {
+                    update_hold_button(frm, row.name, row.is_held);
+                }
+            });
+        }
+    }, 100);
+}
+
+// Also refresh when grid is rendered
+frappe.ui.form.on('Shipment Details', {
+    form_render: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        update_hold_button(frm, cdn, row.is_held);
+    }
+});
+
+
+
+// frappe.ui.form.on('Shipment Details', {
+//     hold: function (frm) {
+//         console.log("hold shipment")
+//     }
+// });
 
 // Helper function to get workflow state index for comparison
 function get_workflow_state_index(state) {
@@ -1487,7 +1656,7 @@ function handle_delivery_dialog(frm) {
                     fieldname: 'origin_airport',
                     fieldtype: 'Link',
                     options: 'Branch',
-                    default: frm.doc.origin_airport || '',
+                    default: frm.doc.port_of_origin,
                 },
                 {
                     label: __('Priority'),

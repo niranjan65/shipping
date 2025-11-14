@@ -39,7 +39,15 @@ frappe.ui.form.on('Consignment Note', {
                     if (r.message) {
                         let addr = r.message;
                          console.log(r.message);
-                        frm.set_value('address', addr.address_line1 || '');                        
+                         let full_address = [
+                        addr.address_line1,
+                        addr.address_line2,
+                        addr.address_title,
+                       
+                         ].filter(Boolean).join(',');
+                //    ].filter(Boolean).join('\n');
+                   frm.set_value('address', full_address || ''); 
+                        // frm.set_value('address', addr.address_line1 || '');                        
                         frm.set_value('shipping_post_code', addr.pincode || '');
                         frm.set_value('shipper_email', addr.email_id || '');
                          frm.set_value('contact_number', addr.phone || '');
@@ -89,7 +97,14 @@ frappe.ui.form.on('Consignment Note', {
                 callback: function(r) {
                     if (r.message) {
                         let addr = r.message;
-                        frm.set_value('receivers_address', addr.address_line1 || '');                        
+                        let destination_address = [
+                        addr.address_line1,
+                        addr.address_line2,
+                        addr.address_title,
+                         ].filter(Boolean).join(',');
+                //    ].filter(Boolean).join('\n');
+                   frm.set_value('receivers_address', destination_address || ''); 
+                        // frm.set_value('receivers_address', addr.address_line1 || '');                        
                         frm.set_value('receiving_post_code', addr.pincode || '');
                         frm.set_value('receiver_email', addr.email_id || '');
                         frm.set_value('receiver_contact_number', addr.phone || '');
@@ -125,28 +140,70 @@ frappe.ui.form.on('Consignment Note', {
     },
     setup: function (frm) {
         frm.calculate_total_weight = function () {
-            let totalWeight = 0;
-            let totalVolume = 0;
-            let totalPieces = 0;
+    let totalPieces = 0;
+    let totalChargeableWeight = 0;
+	let totalActualWeight = 0;
+    let totalVolumetricWeight = 0;
+
+    frm.doc.check_shipment_details.forEach(d => {
+        const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
+        const pieces = parseInt(d.pieces_no) || 0;
+        const length = parseFloat(d.lengthcm) || 0;
+        const width = parseFloat(d.widthcm) || 0;
+        const height = parseFloat(d.heightcm) || 0;
+
+        // Calculate actual weight (includes pieces)
+        const actualWeight = pieceWeight * pieces;
         
-            frm.doc.check_shipment_details.forEach(d => {
-                const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
-                const pieces = parseInt(d.pieces_no) || 0;
-                const length = parseFloat(d.lengthcm) || 0;
-                const width = parseFloat(d.widthcm) || 0;
-                const height = parseFloat(d.heightcm) || 0;
+        // Calculate volumetric weight (includes pieces) 
+        const volumetricWeightRaw = (length * width * height * pieces) / 6000;
+        const volumetricWeight = Math.round(volumetricWeightRaw);
         
-                totalWeight += pieceWeight * pieces;
-                totalVolume += (length * width * height * pieces) / 6000;
-                totalPieces += pieces;
-            });
+        // Chargeable weight is the higher of actual or volumetric weight
+        const chargeableWeight = Math.max(actualWeight, volumetricWeight);
+
+        totalPieces += pieces;
+        totalChargeableWeight += chargeableWeight;
+
+		totalActualWeight += actualWeight;
+        totalVolumetricWeight += volumetricWeight;
+		
+
+    });
+
+    const finalWeight = Math.round(totalChargeableWeight);
+    console.log("Total Chargeable Weight:", finalWeight);
+    
+    frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2));
+    frm.set_value('total_number_of_pieces', totalPieces);
+
+	//  frm.set_value('custom_actual_weight', parseFloat(totalActualWeight).toFixed(2));
+    // frm.set_value('custom_volumetric_weight', parseFloat(totalVolumetricWeight).toFixed(2));
+
+};
+        // frm.calculate_total_weight = function () {
+        //     let totalWeight = 0;
+        //     let totalVolume = 0;
+        //     let totalPieces = 0;
         
-            const finalWeight = Math.max(totalWeight, totalVolume);
+        //     frm.doc.check_shipment_details.forEach(d => {
+        //         const pieceWeight = parseFloat(d.piece_weight_kg) || 0;
+        //         const pieces = parseInt(d.pieces_no) || 0;
+        //         const length = parseFloat(d.lengthcm) || 0;
+        //         const width = parseFloat(d.widthcm) || 0;
+        //         const height = parseFloat(d.heightcm) || 0;
         
-            frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2));
-            console.log("Pura Weight", frm.doc.total_weight)
-            frm.set_value('total_number_of_pieces', totalPieces);
-        };
+        //         totalWeight += pieceWeight * pieces;
+        //         totalVolume += (length * width * height * pieces) / 6000;
+        //         totalPieces += pieces;
+        //     });
+        
+        //     const finalWeight = Math.max(totalWeight, totalVolume);
+        
+        //     frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2));
+        //     console.log("Pura Weight", frm.doc.total_weight)
+        //     frm.set_value('total_number_of_pieces', totalPieces);
+        // };
         
 
         frm.generate_tracking_id = function () {
@@ -179,7 +236,7 @@ frappe.ui.form.on('Consignment Note', {
         frm.delivery_scheduled = deliveryStored === 'true';
     },
     onload: function (frm) {
-        console.log("ONLOAD............");
+        // console.log("ONLOAD............");
 
         // Check if document is new and "Shipment Drafted" entry doesn't exist
         if (frm.is_new()) {
@@ -319,6 +376,14 @@ frappe.ui.form.on('Consignment Note', {
         if(!frm.doc.service_type_feature) {
         update_service_type_feature(frm);
         }
+
+    //     if (frm.__confirmed_save) {
+    //     frm.__confirmed_save = false; 
+    //     return;  
+    // }
+
+    
+    
     },
 
     destination: function (frm) {
@@ -406,6 +471,207 @@ frappe.ui.form.on('Consignment Note', {
     },
 
     refresh: function (frm) {
+
+//         if (frm.doc.workflow_state === "Dropped off at Cal Office") {
+//         let drafted = frm.doc.drafted_shipment_details || [];
+//         let final = frm.doc.check_shipment_details || [];
+
+//         if (drafted.length !== final.length) {
+//             frappe.msgprint(__('Number of rows differ between Drafted and Final Shipment Details.'));
+//             frappe.validated = false;
+//             return;
+//         }
+
+//         let mismatchDetails = [];
+
+//         for (let i = 0; i < drafted.length; i++) {
+//             let d = drafted[i];
+//             let f = final[i];
+//             let rowMismatch = [];
+
+//             if (d.pieces_no !== f.pieces_no) {
+//                 rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
+                
+//             }
+//             if (d.piece_weight_kg !== f.piece_weight_kg) {
+//                 rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
+//             }
+//             if (d.heightcm !== f.heightcm) {
+//                 rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
+//             }
+//             if (d.lengthcm !== f.lengthcm) {
+//                 rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
+//             }
+//             if (d.widthcm !== f.widthcm) {
+//                 rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
+//             }
+//             if (rowMismatch.length > 0) {
+//                 mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
+//             }
+//         }
+
+//         if (frm.doc.is_mismatched == 1 && mismatchDetails.length > 0) {
+//             frappe.validated = false;
+//             let dialog = new frappe.ui.Dialog({
+//                 title: __('Shipment Detail Differences'),
+//                 primary_action_label: __('Yes'),
+//                 secondary_action_label: __('No'),
+//                 indicator: 'red',
+//                 fields: [
+//                     {
+//                         label: __('Mismatch Details'),
+//                         fieldtype: 'HTML',
+//                         fieldname: 'mismatch_html',
+//                         options: `<div style="max-height:300px;overflow:auto;"><pre>${mismatchDetails.join('<hr>')}</pre></div>`
+//                     }
+//                 ],
+//                 primary_action: () => {
+//     dialog.hide();
+
+//     frm.set_value('shipment_check', 0);
+//     frm.set_value('is_mismatched', 0);
+//     frm.set_value('workflow_state', 'Verified Weight/Dimension');
+
+//     frm.save().then(() => {
+//         frappe.show_alert({
+//             message: __('Updated successfully and workflow state set to Verified Weight/Dimension'),
+//             indicator: 'green'
+//         });
+//         frm.reload_doc();  // Refresh the UI to reflect changes
+//     }).catch(err => {
+//         frappe.msgprint(__('An error occurred while saving the document.'));
+//         console.error(err);
+//     });
+// },
+
+// //                 primary_action: () => {
+// //                     dialog.hide();
+// //                     console.log("Primary action triggered");
+// //                             frappe.db.set_value('Consignment Note', frm.doc.name, {
+// //     'shipment_check': 0,
+// //     'is_mismatched': 0,
+// //     'workflow_state': 'Verified Weight/Dimension'
+// // })
+// // .then(r => {
+// //     frappe.show_alert({message: 'Updated successfully', indicator: 'green'});
+// //     frappe.db.set_value('Consignment Note', frm.doc.name, {
+// //     'workflow_state': 'Verified Weight/Dimension',
+// // })
+// // });
+                            
+                           
+                            
+// //                         },
+//                 secondary_action: function() {
+//                     dialog.hide();
+                    
+//                 }
+//             });
+//             dialog.show();
+//         }
+
+
+//     }
+
+        //  if (frm.doc.workflow_state === "Verified Weight/Dimension" && frm.doc.customer_type === "Corporate") {
+        //     frm.disable_form();
+        // } else {
+        //     frm.enable_form();
+        // }
+        //  if (frm.doc.workflow_state === "Payment Received and Issued Invoice" && frm.doc.customer_name === "Walk-In Customer") {
+        //     frm.disable_form();
+        // } else {
+        //     frm.enable_form();
+        // }
+  if (frm.doc.workflow_state === "Verified Weight/Dimension") {
+            //// use Any type of shorting algo  (dipu er kaj)
+            let drafted = frm.doc.drafted_shipment_details || [];
+            let final = frm.doc.check_shipment_details || [];
+
+            if (drafted.length !== final.length) {
+                frappe.msgprint(__('Number of rows differ between Drafted and Final Shipment Details.'));
+                return;
+            }
+
+            let mismatchDetails = [];
+
+            for (let i = 0; i < drafted.length; i++) {
+                let d = drafted[i];
+                let f = final[i];
+                let rowMismatch = [];
+
+                if (d.pieces_no !== f.pieces_no) {
+                    rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
+                }
+                if (d.piece_weight_kg !== f.piece_weight_kg) {
+                    rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
+                }
+                if (d.heightcm !== f.heightcm) {
+                    rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
+                }
+                if (d.lengthcm !== f.lengthcm) {
+                    rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
+                }
+                if (d.widthcm !== f.widthcm) {
+                    rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
+                }
+                if (rowMismatch.length > 0) {
+                    mismatchDetails.push(`Row ${i + 1}:\n` + rowMismatch.join('\n'));
+                    // mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
+                }
+            }
+
+
+
+            if (mismatchDetails.length > 0) {
+                frappe.msgprint({
+                    title: __('Shipment Detail Differences'),
+                    indicator: 'red',
+                    // message: mismatchDetails.join('\n------------------\n')
+                    //  message: mismatchDetails.join('\n')
+                    //  message: `<pre>${mismatchDetails.join('\n------------------\n')}</pre>`
+                    message: mismatchDetails.join('<hr>')
+
+                });
+            }
+        }
+         if (!frm.is_new()) {
+            frm.add_custom_button(__('Cancel'), function () {
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "Tracking",
+                        filters: { consignment_note: frm.doc.name },
+                        fields: ["name", "tracking_table"],
+                    },
+                    callback: function (r) {
+                        if (r.message) {
+                            let tracking_doc = r.message;
+                            let hasManifest = (tracking_doc.tracking_table || []).some(row => row.status === "Manifest Generated");
+                            if (hasManifest) {
+                                frappe.msgprint("You cannot cancel this consignment because Manifest is already generated.");
+                                return;
+                            }
+                        }
+
+                        
+                        frappe.confirm(
+                            'Are you sure you want to cancel this consignment?',
+                            () => {
+                                if (frm.doc.sales_invoice) {
+                                    cancel_sales_invoice(frm);
+                                     frm.save();
+                                } else {
+                                     frm.set_value("status", "Cancelled");
+                                }
+                                frm.save();
+                            }
+                        );
+                    }
+                });
+            });
+        }
+
         frm.generate_tracking_id();
         // update_service_type_feature(frm);
         
@@ -416,13 +682,13 @@ frappe.ui.form.on('Consignment Note', {
             frm.add_custom_button('View sales invoice', function () {
                     frappe.msgprint(
                         // `Invoice Number: <a href="http://adv.anantdv.com/app/sales-invoice/${frm.doc.sales_invoice}" target="_blank">${frm.doc.sales_invoice}</a>`
-                        `Invoice Number: <a href="http://182.71.135.110:8888/app/sales-invoice/${frm.doc.sales_invoice}" target="_blank">${frm.doc.sales_invoice}</a>`
+                        `Invoice Number: <a href="/app/sales-invoice/${frm.doc.sales_invoice}" target="_blank">${frm.doc.sales_invoice}</a>`
 
                     );
                     // frappe.set_route("Sales Invoive", frm.doc.sales_invoice);
                 },);
         }
-        if(frm.doc.workflow_state === "Payment Received and Issued Invoice" && frm.doc.customer_type == 'Cash' ) {
+        if(frm.doc.workflow_state === "Payment Received and Issued Invoice" && frm.doc.customer_type == 'Cash' && frm.doc.sales_invoice) {
                 frappe.call({
                     method: 'shipping.shipping.doctype.consignment_note.make_payment_entry.create_payment_entry_from_sales_invoice',
                     args: {
@@ -439,17 +705,30 @@ frappe.ui.form.on('Consignment Note', {
                     }
                 });
             }
-        if(frm.doc.workflow_state === "Delivered To Customer" && frm.doc.customer_type === "Corporate") {
+
+           
+        if(frm.doc.workflow_state === "Delivered To Customer" && frm.doc.customer_type === "Corporate" && !frm.doc.sales_invoice) {
             // console.log(123);
-            generate_sales_invoice(frm);
+            // generate_sales_invoice(frm);
+            frm.add_custom_button('Generate Sales Invoice', function () {
+                    generate_sales_invoice(frm)
+                },);
         }
-        if(frm.doc.workflow_state === "Invoice Generated" && frm.doc.customer_type === "Cash") {
-            generate_sales_invoice(frm);
+        if(frm.doc.workflow_state === "Invoice Generated" && frm.doc.customer_type === "Cash" && !frm.doc.sales_invoice) {
+            // generate_sales_invoice(frm);
+            frm.add_custom_button('Generate Sales Invoice', function () {
+                    generate_sales_invoice(frm)
+                },);
+        }
+
+        // Check if custom_delivered_to_customer_date is set when workflow state is "Delivered To Customer" for POD print format
+        if (frm.doc.workflow_state === "Delivered To Customer" && !frm.doc.custom_delivered_to_customer_date) {
+
+            frm.set_value('custom_delivered_to_customer_date', frm.doc.modified);
+            console.log("Setting custom_delivered_to_customer_date to modified date:", frm.doc.modified);
+            frm.save();
         }
         
-         if(frm.doc.workflow_state === "Delivered To Customer" ){
-            frm.set_value('custom_proof_of_delivery', frm.doc.modified);
-         }
         // Check for each dialog-triggering state separately
         if (frm.doc.workflow_state === "Assigned for Pickup") {
             check_if_schedule_exists(frm, "Assigned for Pickup");
@@ -479,57 +758,285 @@ frappe.ui.form.on('Consignment Note', {
         //     }
         // });
   
-    if (frm.doc.workflow_state === "Verified Weight/Dimension") {
-        //// use Any type of shorting algo  (dipu er kaj)
-            let drafted = frm.doc.drafted_shipment_details || [];
-            let final = frm.doc.check_shipment_details || [];
+    // if (frm.doc.workflow_state === "Verified Weight/Dimension") {
+    //     //// use Any type of shorting algo  (dipu er kaj)
+    //         let drafted = frm.doc.drafted_shipment_details || [];
+    //         let final = frm.doc.check_shipment_details || [];
 
-            if (drafted.length !== final.length) {
-                frappe.msgprint(__('Number of rows differ between Drafted and Final Shipment Details.'));
-                return;
-            }
+    //         if (drafted.length !== final.length) {
+    //             frappe.msgprint(__('Number of rows differ between Drafted and Final Shipment Details.'));
+    //             return;
+    //         }
 
-            let mismatchDetails = [];
+    //         let mismatchDetails = [];
 
-            for (let i = 0; i < drafted.length; i++) {
-                let d = drafted[i];
-                let f = final[i];
-                let rowMismatch = [];
+    //         for (let i = 0; i < drafted.length; i++) {
+    //             let d = drafted[i];
+    //             let f = final[i];
+    //             let rowMismatch = [];
 
-                 if (d.pieces_no !== f.pieces_no) {
-                    rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
-                }
-                if (d.piece_weight_kg !== f.piece_weight_kg) {
-                    rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
-                }
-                if (d.heightcm !== f.heightcm) {
-                    rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
-                }
-                if (d.lengthcm !== f.lengthcm) {
-                    rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
-                }
-                if (d.widthcm !== f.widthcm) {
-                    rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
-                }
-                if (rowMismatch.length > 0) {
-                    mismatchDetails.push(`Row ${i + 1}:\n` + rowMismatch.join('\n'));
-                    // mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
-                }
-            }
+    //              if (d.pieces_no !== f.pieces_no) {
+    //                 rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
+    //             }
+    //             if (d.piece_weight_kg !== f.piece_weight_kg) {
+    //                 rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
+    //             }
+    //             if (d.heightcm !== f.heightcm) {
+    //                 rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
+    //             }
+    //             if (d.lengthcm !== f.lengthcm) {
+    //                 rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
+    //             }
+    //             if (d.widthcm !== f.widthcm) {
+    //                 rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
+    //             }
+    //             if (rowMismatch.length > 0) {
+    //                 mismatchDetails.push(`Row ${i + 1}:\n` + rowMismatch.join('\n'));
+    //                 // mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
+    //             }
+    //         }
 
            
 
-            if (mismatchDetails.length > 0) {
-                frappe.msgprint({
-                    title: __('Shipment Detail Differences'),
-                    indicator: 'red',
-                    // message: mismatchDetails.join('\n------------------\n')
-                    //  message: mismatchDetails.join('\n')
-                    //  message: `<pre>${mismatchDetails.join('\n------------------\n')}</pre>`
-                    message: mismatchDetails.join('<hr>')
+    //         if (mismatchDetails.length > 0) {
+    //             frappe.msgprint({
+    //                 title: __('Shipment Detail Differences'),
+    //                 indicator: 'red',
+    //                 // message: mismatchDetails.join('\n------------------\n')
+    //                 //  message: mismatchDetails.join('\n')
+    //                 //  message: `<pre>${mismatchDetails.join('\n------------------\n')}</pre>`
+    //                 message: mismatchDetails.join('<hr>')
 
-                });
+    //             });
+    //         }
+    //     }
+
+
+
+        // if(frm.doc.workflow_state === "Dropped off at Cal Office") {
+        //     console.log("Save triggered")
+        //     frm.enable_save();
+        // }
+
+        if(frm.doc.workflow_state === "Verified Weight/Dimension"  ) {
+            frm.set_df_property('customer_name', 'read_only', 1);
+        }
+
+        if((frm.doc.workflow_state === 'Verified Weight/Dimension' && frm.doc.customer_type === "Corporate") || (frm.doc.workflow_state === 'Payment Received and Issued Invoice' && frm.doc.customer_type === "Cash")) {
+
+            frm.set_df_property('check_shipment_details', 'read_only', 1); 
+            frm.set_df_property('drafted_shipment_details', 'read_only', 1); 
+        }
+        if(frm.doc.workflow_state === "Dropped off at Cal Office" && !frm.doc.expected_delivery_date ) {
+            frm.set_df_property('is_mismatched', 'read_only', 0); 
+            frm.dirty();  // Mark form as modified
+            frm.enable_save();
+            console.log("Save triggered");
+} 
+// else if(frm.doc.workflow_state === "Dropped off at Cal Office") {
+//     frm.disable_save();
+// }
+
+
+
+// custom button for verify weight and dimension
+
+    if (frm.doc.workflow_state === "Dropped off at Cal Office") {
+        
+           
+                if (!frm.doc.expected_delivery_date && frm.doc.check_shipment_details.length === 0) {
+                // frappe.msgprint(__('Please enter the Expected Delivery Date before proceeding.'));
+                frappe.msgprint({
+          message: `<span style="color:red;">${__('Please enter the Expected Delivery Date and Final Shipment Details before proceeding.')}</span>`,
+        indicator: 'red'  
+    });
+             
+                return;
             }
+
+//             frm.add_custom_button(__('Verify Weight/Dimension'), () => {
+                
+//                 let drafted = frm.doc.drafted_shipment_details || [];
+//                 let final = frm.doc.check_shipment_details || [];
+
+//                 if (drafted.length !== final.length) {
+//                     frappe.msgprint(__('Number of rows differ between Drafted and Final Shipment Details.'));
+//                     return;
+//                 }
+
+//                 let mismatchDetails = [];
+
+//                 for (let i = 0; i < drafted.length; i++) {
+//                     let d = drafted[i];
+//                     let f = final[i];
+//                     let rowMismatch = [];
+
+//                     if (d.pieces_no !== f.pieces_no) {
+//                         rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
+//                     }
+//                     if (d.piece_weight_kg !== f.piece_weight_kg) {
+//                         rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
+//                     }
+//                     if (d.heightcm !== f.heightcm) {
+//                         rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
+//                     }
+//                     if (d.lengthcm !== f.lengthcm) {
+//                         rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
+//                     }
+//                     if (d.widthcm !== f.widthcm) {
+//                         rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
+//                     }
+//                     if (rowMismatch.length > 0) {
+//                         mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
+//                     }
+//                 }
+
+//                 if (mismatchDetails.length > 0) {
+//                     let dialog = new frappe.ui.Dialog({
+//                         title: __('Shipment Detail Differences'),
+//                         primary_action_label: __('Yes'),
+//                         secondary_action_label: __('No'),
+//                         indicator: 'red',
+//                         fields: [
+//                             {
+//                                 label: __('Mismatch Details'),
+//                                 fieldtype: 'HTML',
+//                                 fieldname: 'mismatch_html',
+//                                 options: `<div style="max-height:300px;overflow:auto;"><pre>${mismatchDetails.join('<hr>')}</pre></div>`
+//                             }
+//                         ],
+//                         primary_action: () => {
+//                             frappe.db.set_value('Consignment Note', frm.doc.name, {
+//     'shipment_check': 1,
+// })
+// .then(r => {
+//     frappe.show_alert({message: 'Updated successfully', indicator: 'green'});
+// });
+//                             dialog.hide();
+//                             frm.save().then(() => {
+//                                 // frm.set_value('workflow_state', 'Verified Weight/Dimension');
+//                                 frappe.db.set_value('Consignment Note', frm.doc.name, {
+//     'workflow_state': 'Verified Weight/Dimension',
+// })
+// .then(r => {
+//     frappe.show_alert({message: 'Updated successfully', indicator: 'green'});
+// });
+//                                 frappe.show_alert({message: __('Workflow state updated.'), indicator: 'green'});
+//                             });
+                            
+//                         },
+//                         secondary_action: () => {
+//                             dialog.hide();
+//                         }
+//                     });
+//                     dialog.show();
+//                 } else {
+//                     // No mismatches, proceed directly
+//                     frm.set_value('shipment_check', 0);
+//                     frm.save().then(() => {
+//                         // frm.set_value('workflow_state', 'Verified Weight/Dimension');
+//                         frappe.db.set_value('Consignment Note', frm.doc.name, {
+//     'workflow_state': 'Verified Weight/Dimension',
+// })
+// .then(r => {
+//     frappe.show_alert({message: 'Updated successfully', indicator: 'green'});
+// });
+//                         frappe.show_alert({message: __('Workflow state updated.'), indicator: 'green'});
+//                     });
+                    
+//                 }
+//             }, __('Actions'));
+
+                frm.add_custom_button(__('Verify Weight/Dimension'), async () => {
+        console.log("Check verify weight and dimension", frm.doc.check_shipment_details.length === 0);
+
+        if (!frm.doc.expected_delivery_date || frm.doc.check_shipment_details.length === 0) {
+            frappe.throw(__('Please enter the Expected Delivery Date and Final Shipment Details before proceeding.'));
+        }
+
+        let drafted = frm.doc.drafted_shipment_details || [];
+        let final = frm.doc.check_shipment_details || [];
+        let mismatchDetails = [];
+
+        // ✅ Compare counts
+        if (drafted.length !== final.length) {
+            mismatchDetails.push(
+                `Number of rows differ between Drafted (${drafted.length}) and Final (${final.length}) Shipment Details.`
+            );
+        }
+
+        // ✅ Compare row-by-row
+        let minRows = Math.min(drafted.length, final.length);
+        for (let i = 0; i < minRows; i++) {
+            let d = drafted[i];
+            let f = final[i];
+            let rowMismatch = [];
+
+            if (d.pieces_no !== f.pieces_no) rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
+            if (d.piece_weight_kg !== f.piece_weight_kg) rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
+            if (d.heightcm !== f.heightcm) rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
+            if (d.lengthcm !== f.lengthcm) rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
+            if (d.widthcm !== f.widthcm) rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
+
+            if (rowMismatch.length > 0) mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
+        }
+
+        // ✅ If mismatches exist, show dialog
+        if (mismatchDetails.length > 0) {
+            let dialog = new frappe.ui.Dialog({
+                title: __('Shipment Detail Differences'),
+                primary_action_label: __('Proceed'),
+                secondary_action_label: __('Review Again'),
+                indicator: 'red',
+                fields: [
+                    {
+                        label: __('Mismatch Details'),
+                        fieldtype: 'HTML',
+                        fieldname: 'mismatch_html',
+                        options: `<div style="max-height:300px;overflow:auto;"><p>${mismatchDetails.join('<hr>')}</p></div>`
+                    }
+                ],
+                primary_action: async () => {
+                    dialog.hide();
+
+                    try {
+                        await frappe.db.set_value("Consignment Note", frm.doc.name, "shipment_check", 1);
+                        await frappe.db.set_value("Consignment Note", frm.doc.name, "workflow_state", "Verified Weight/Dimension");
+
+                        // ✅ Update frontend values instantly
+                        frm.set_value('shipment_check', 1);
+                        frm.set_value('workflow_state', 'Verified Weight/Dimension');
+
+                        frappe.show_alert({ message: __('Workflow state updated.'), indicator: 'green' });
+                        console.log("Workflow state set to Verified Weight/Dimension", frm.doc);
+
+                        // Optional reload for syncing child tables if needed
+                        setTimeout(() => frm.reload_doc(), 500);
+                    } catch (err) {
+                        frappe.msgprint(__('Error updating fields: ') + err.message);
+                    }
+                },
+                secondary_action: () => dialog.hide()
+            });
+
+            dialog.show();
+
+        } else {
+            // ✅ No mismatches — directly update
+            try {
+                await frappe.db.set_value("Consignment Note", frm.doc.name, "shipment_check", 1);
+                await frappe.db.set_value("Consignment Note", frm.doc.name, "workflow_state", "Verified Weight/Dimension");
+
+                // frm.set_value('shipment_check', 1);
+                // frm.set_value('workflow_state', 'Verified Weight/Dimension');
+
+                frm.reload_doc();
+                frappe.show_alert({ message: __('Workflow state updated.'), indicator: 'green' });
+            } catch (err) {
+                frappe.msgprint(__('Error updating fields: ') + err.message);
+            }
+        }
+    }, __('Actions'));
         }
 
 
@@ -556,14 +1063,115 @@ frappe.ui.form.on('Consignment Note', {
         }
     },
 
-    before_workflow_action: function(frm) {
-        console.log("Before workflow action triggered");
+    before_workflow_action: async function (frm) {
+       
+//         if (frm.doc.workflow_state === "Dropped off at Cal Office"){
+//             // frm.set_value('shipment_check', 0);
+//             frappe.db.set_value('Consignment Note', 'CAL-0046107', {
+//     'shipment_check': 0,
+// })
+// .then(r => {
+//     frappe.show_alert({message: 'Updated successfully', indicator: 'green'});
+// });
+//         }
+        if (frm.doc.workflow_state === "Picked up from customer" || frm.doc.workflow_state === "Assigned for Pickup" ){
         
+        const schedules = await frappe.db.get_list('Pickup-Delivery Schedule', {
+                filters: { consignment_id: frm.doc.name },
+                fields: ['name']
+            });
+
+        console.log("scheduled", schedules)
+        if(schedules.length === 0) {
+            location.reload()
+            frappe.throw("Please assign Pickup-Delivery Schedule before proceeding.");
+        }
+
+    }
+        if (frm.doc.workflow_state === "Picked Up from Airport" || frm.doc.workflow_state === "Dropped Of At Destination Cal Office"){
+        
+        const schedules = await frappe.db.get_list('Pickup-Delivery Schedule', {
+                filters: { status: "Picked Up from Airport", consignment_id: frm.doc.name },
+                fields: ['name']
+            });
+
+        console.log("Picked Up from Airport", schedules)
+        if(schedules.length === 0) {
+            location.reload()
+            frappe.throw("Please assign Pickup-Delivery Schedule before proceeding.");
+        }
+
+    }
+        if (frm.doc.workflow_state === "Delivery Scheduled" || frm.doc.workflow_state === "Out For Delivery"){
+        
+        const schedules = await frappe.db.get_list('Pickup-Delivery Schedule', {
+                filters: { status: "Delivery Scheduled", consignment_id: frm.doc.name },
+                fields: ['name']
+            });
+
+        console.log("scheduled", schedules)
+        if(schedules.length === 0) {
+            location.reload()
+            frappe.throw("Please assign Pickup-Delivery Schedule before proceeding.");
+        }
+
+    }
     },
 
-    after_workflow_action: function(frm) {
-        
-    },
+    // after_workflow_action: function(frm) {
+    //     if (frm.doc.workflow_state === "Dropped off at Cal Office") {
+    //         //// use Any type of shorting algo  (dipu er kaj)
+    //         let drafted = frm.doc.drafted_shipment_details || [];
+    //         let final = frm.doc.check_shipment_details || [];
+
+    //         if (drafted.length !== final.length) {
+    //             frappe.msgprint(__('Number of rows differ between Drafted and Final Shipment Details.'));
+    //             return;
+    //         }
+
+    //         let mismatchDetails = [];
+
+    //         for (let i = 0; i < drafted.length; i++) {
+    //             let d = drafted[i];
+    //             let f = final[i];
+    //             let rowMismatch = [];
+
+    //             if (d.pieces_no !== f.pieces_no) {
+    //                 rowMismatch.push(`Pieces No (Drafted: ${d.pieces_no}, Final: ${f.pieces_no})`);
+    //             }
+    //             if (d.piece_weight_kg !== f.piece_weight_kg) {
+    //                 rowMismatch.push(`Weight (Drafted: ${d.piece_weight_kg}, Final: ${f.piece_weight_kg})`);
+    //             }
+    //             if (d.heightcm !== f.heightcm) {
+    //                 rowMismatch.push(`Height (Drafted: ${d.heightcm}, Final: ${f.heightcm})`);
+    //             }
+    //             if (d.lengthcm !== f.lengthcm) {
+    //                 rowMismatch.push(`Length (Drafted: ${d.lengthcm}, Final: ${f.lengthcm})`);
+    //             }
+    //             if (d.widthcm !== f.widthcm) {
+    //                 rowMismatch.push(`Width (Drafted: ${d.widthcm}, Final: ${f.widthcm})`);
+    //             }
+    //             if (rowMismatch.length > 0) {
+    //                 mismatchDetails.push(`Row ${i + 1}:\n` + rowMismatch.join('\n'));
+    //                 // mismatchDetails.push(`Row ${i + 1}:<br>${rowMismatch.join('<br>')}`);
+    //             }
+    //         }
+
+
+
+    //         if (mismatchDetails.length > 0) {
+    //             frappe.msgprint({
+    //                 title: __('Shipment Detail Differences'),
+    //                 indicator: 'red',
+    //                 // message: mismatchDetails.join('\n------------------\n')
+    //                 //  message: mismatchDetails.join('\n')
+    //                 //  message: `<pre>${mismatchDetails.join('\n------------------\n')}</pre>`
+    //                 message: mismatchDetails.join('<hr>')
+
+    //             });
+    //         }
+    //     }
+    // },
 });
 
 // Updated function to check if schedule exists and show appropriate dialog
@@ -783,7 +1391,8 @@ function handle_pickup_assignment_dialog(frm) {
                 fieldname: 'delivery_branch',
                 fieldtype: 'Link',
                 options: 'Location',
-                reqd: 1
+                reqd: 1,
+                default: frm.doc.origin
             },
             // {
             //     label: __('Assign To'),
@@ -897,7 +1506,7 @@ function handle_picked_up_from_airport_dialog(frm) {
         fields: [
             {
                 label: __('Pickup DateTime'),
-                fieldname: 'datetime',
+                fieldname: 'datetime',    
                 fieldtype: 'Datetime',
                 reqd: 1,
             },
@@ -913,7 +1522,9 @@ function handle_picked_up_from_airport_dialog(frm) {
                 fieldname: 'delivery_branch',
                 fieldtype: 'Link',
                 options: 'Branch',
-                reqd: 1
+                reqd: 1,
+                default: frm.doc.destination
+
             },
             {
                 label: __('Assign To'),
@@ -937,8 +1548,8 @@ function handle_picked_up_from_airport_dialog(frm) {
             // new_row.timestamp = frappe.datetime.now_datetime();
             // new_row.assigned_to = assigned_to_email;
             // frm.refresh_field("tracking_table");
-            // frm.set_value('custom_proof_of_delivery', values.datetime);
-            frm.set_value('custom_cal_staff_delivery', assigned_to_email);
+           
+           
 
             // Then create pickup-delivery document
             let new_doc = frappe.model.get_new_doc('Pickup-Delivery Schedule');
@@ -1016,7 +1627,8 @@ function handle_delivery_scheduled_dialog(frm) {
                 fieldname: 'delivery_branch',
                 fieldtype: 'Link',
                 options: 'Branch',
-                reqd: 1
+                reqd: 1,
+                default: frm.doc.destination
             },
             {
                 label: __('Delivery Address'),
@@ -1040,9 +1652,10 @@ function handle_delivery_scheduled_dialog(frm) {
             
             // First create a tracking entry
             let assigned_to_email = values.assigned_to;
-            
-            frm.set_value('custom_proof_of_delivery', values.datetime);
-            frm.set_value('custom_cal_staff_delivery', assigned_to_email);
+
+             frm.set_value('custom_cal_staff_delivery', assigned_to_email);
+            // frm.save();
+           
             // Create new tracking entry with assigned_to value
             // let new_row = frm.add_child("tracking_table");
             // new_row.status = "Delivery Scheduled";
@@ -1089,6 +1702,8 @@ function handle_delivery_scheduled_dialog(frm) {
                     indicator: 'red'
                 });
             });
+            
+            
         },
         onhide: function() {
             // If dialog is closed without action, reset the display flag
@@ -1113,6 +1728,7 @@ function generate_sales_invoice(frm) {
         callback: function (r) {
             if (r.message && r.message.sales_invoice) {
                 // frappe.msgprint(`Sales Invoice already exists: <a href="/app/sales-invoice/${r.message.sales_invoice}" target="_blank">${r.message.sales_invoice}</a>`);
+                return true;
             } else {
                 frappe.call({
                     method: 'shipping.shipping.doctype.consignment_note.make_sales_invoice.make_invoice',
@@ -1134,6 +1750,25 @@ function generate_sales_invoice(frm) {
                         console.log(r);
                     }
                 });
+            }
+        }
+    });
+}
+
+function cancel_sales_invoice(frm) {
+    frappe.call({
+        method: "shipping.shipping.doctype.consignment_note.cancel_sales.cancel_sales_invoice_and_payment_entry",
+        args: {
+            sales_invoice_name: frm.doc.sales_invoice,
+            consignment_name: frm.doc.name
+        },
+        freeze: true,
+        callback: function (res) {
+            if (!res.exc && res.message.status === "success") {
+                frappe.msgprint(`Sales Invoice ${frm.doc.sales_invoice}  cancelled.`);
+                frm.reload_doc();
+            } else {
+                frappe.msgprint(__('Error while cancelling Sales Invoice: ') + (res.message || ""));
             }
         }
     });

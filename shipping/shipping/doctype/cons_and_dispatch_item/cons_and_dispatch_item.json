@@ -23,29 +23,29 @@
  ],
  "fields": [
   {
-   "columns": 1,
+   "columns": 5,
    "fieldname": "awb",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": " AWB",
-   "width": "3"
+   "options": "Consignment Note"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "destination",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Destination"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "no_of_pieces",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "No of pieces"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "origin",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -59,7 +59,7 @@
    "label": "Net Weight"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "default": "No",
    "fieldname": "dispatch",
    "fieldtype": "Select",
@@ -76,56 +76,64 @@
    "label": "Remarks"
   },
   {
+   "columns": 2,
    "fieldname": "air_awb",
    "fieldtype": "Data",
    "hidden": 1,
+   "in_list_view": 1,
    "label": "Air AWB"
   },
   {
+   "columns": 2,
    "default": "0",
    "fieldname": "branch_flag",
    "fieldtype": "Check",
    "hidden": 1,
+   "in_list_view": 1,
    "label": "Branch Flag"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "length",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Length"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "width",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Width"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "height",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Height"
   },
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "airline_name",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Airline Name",
-   "mandatory_depends_on": "eval:doc.dispatch==\"Yes\"",
    "options": "Airline Name"
   },
   {
+   "columns": 2,
    "fieldname": "bag_no",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Bag No.",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
+   "options": "\nNA\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-30 18:31:57.550020",
+ "modified": "2025-10-24 18:25:18.486964",
  "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Cons and Dispatch Item",

@@ -80,9 +80,15 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-07-15 18:04:36.534892",
- "modified_by": "abhirup@anantdv.com",
+ "links": [
+  {
+   "group": "Manifest Order",
+   "link_doctype": "Manifest Order",
+   "link_fieldname": "cons_and_dispatch_no"
+  }
+ ],
+ "modified": "2025-10-30 13:39:14.515470",
+ "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Cons and Dispatch",
  "naming_rule": "Expression (old style)",

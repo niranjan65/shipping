@@ -6,6 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_oylf",
   "workflow_state",
   "title",
   "air_way_bill",
@@ -19,6 +20,13 @@
   "customer_name",
   "datetime",
   "expected_delivery_date",
+  "shipment_check",
+  "is_mismatched",
+  "is_sales_invoice_paid",
+  "is_destination_branch_flag",
+  "insurance_section",
+  "ignore_insurance",
+  "status",
   "value_of_shipment_section",
   "value_of_shipment",
   "column_break_443m",
@@ -71,12 +79,16 @@
   "shippers_agreement",
   "wei_agree_to_all_the_terms_and_conditions_of_ca_logistic",
   "signature",
+  "manifest_order_no",
+  "cons_and_dispatch_no",
   "amended_from",
   "tracking_section",
   "tracking_id",
   "tracking_table",
   "is_manifest_check",
-  "sales_invoice"
+  "sales_invoice",
+  "custom_cal_staff_delivery",
+  "custom_delivered_to_customer_date"
  ],
  "fields": [
   {
@@ -89,7 +101,8 @@
    "fieldname": "air_way_bill",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Air Way Bill Number"
+   "label": "Air Way Bill Number",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "allow_on_submit": 1,
@@ -105,6 +118,7 @@
    "in_list_view": 1,
    "label": "Customer Type",
    "options": "\nCorporate\nCash",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
@@ -113,6 +127,7 @@
    "in_list_view": 1,
    "label": "Customer Name",
    "options": "Customer",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
@@ -132,6 +147,7 @@
    "in_list_view": 1,
    "label": "Origin",
    "options": "Location",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
@@ -147,6 +163,7 @@
    "fieldname": "datetime",
    "fieldtype": "Date",
    "label": "Date",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
@@ -182,12 +199,14 @@
   {
    "fieldname": "shipping_company_name",
    "fieldtype": "Data",
-   "label": "Sender Company Name"
+   "label": "Sender Company Name",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "address",
    "fieldtype": "Small Text",
-   "label": "Sender's  Address"
+   "label": "Sender's  Address",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "shipping_city",
@@ -201,22 +220,26 @@
   {
    "fieldname": "contact_name",
    "fieldtype": "Data",
-   "label": "Sender Contact Name"
+   "label": "Sender Contact Name",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "contact_number",
    "fieldtype": "Data",
-   "label": "Sender Contact Number"
+   "label": "Sender Contact Number",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "shipper_email",
    "fieldtype": "Data",
-   "label": "Sender Email"
+   "label": "Sender Email",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "shipping_post_code",
    "fieldtype": "Data",
-   "label": "Sender Post Code"
+   "label": "Sender Post Code",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "receivers_details_section",
@@ -238,6 +261,7 @@
    "fieldname": "receiving_city",
    "fieldtype": "Data",
    "label": "Receiving City",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
@@ -248,18 +272,21 @@
    "fieldname": "receiver_contact_name",
    "fieldtype": "Data",
    "label": "Receiver Contact Name",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
    "fieldname": "receiver_contact_number",
    "fieldtype": "Data",
    "label": "Receiver Contact Number",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
    "fieldname": "receiver_email",
    "fieldtype": "Data",
-   "label": "Receiver Email"
+   "label": "Receiver Email",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "receiving_post_code",
@@ -275,13 +302,15 @@
    "fieldname": "check_shipment_details",
    "fieldtype": "Table",
    "label": "Final Shipment Details",
-   "mandatory_depends_on": "eval:doc.workflow_state === 'Verified Weight/Dimension'",
-   "options": "Shipment_item"
+   "mandatory_depends_on": "eval:doc.workflow_state === 'Dropped off at Cal Office';",
+   "options": "Shipment_item",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "total_number_of_pieces",
    "fieldtype": "Data",
-   "label": "Total Number Of Pieces"
+   "label": "Total Number Of Pieces",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "total_weight",
@@ -294,12 +323,14 @@
    "fieldname": "total_value",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Total Value"
+   "label": "Total Value",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "additional_information",
    "fieldtype": "Text Editor",
-   "label": "Additional information "
+   "label": "Additional information ",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "shippers_agreement",
@@ -347,6 +378,7 @@
    "allow_on_submit": 1,
    "fieldname": "tracking_table",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Tracking Table",
    "options": "Tracking Table"
   },
@@ -355,6 +387,7 @@
    "fieldtype": "Table",
    "label": "Drafted Shipment Details",
    "options": "Shipment_item",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");",
    "reqd": 1
   },
   {
@@ -362,7 +395,8 @@
    "fieldname": "origin_address",
    "fieldtype": "Link",
    "label": "Origin Address",
-   "options": "Address"
+   "options": "Address",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fetch_from": "destination_branch.address",
@@ -390,7 +424,8 @@
    "fieldname": "origin_branch",
    "fieldtype": "Link",
    "label": "Origin Branch",
-   "options": "Customer Branch"
+   "options": "Customer Branch",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fieldname": "destination_branch",
@@ -412,7 +447,8 @@
    "fieldname": "airline_code",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Airport Code"
+   "label": "Airport Code",
+   "read_only_depends_on": "eval:(doc.workflow_state === 'Verified Weight/Dimension' && doc.customer_type === \"Corporate\") || (doc.workflow_state === 'Payment Received and Issued Invoice' && doc.customer_type === \"Cash\");"
   },
   {
    "fetch_from": "destination.custom_airport_code",
@@ -432,16 +468,18 @@
    "fieldname": "expected_delivery_date",
    "fieldtype": "Date",
    "label": "Expected Delivery Date",
-   "mandatory_depends_on": "eval:doc.workflow_state === 'Verified Weight/Dimension'"
+   "mandatory_depends_on": "eval:doc.workflow_state === 'Dropped off at Cal Office';"
   },
   {
    "allow_on_submit": 1,
    "default": "0",
    "fieldname": "dispatch_flag",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Dispatch_flag"
   },
   {
+   "depends_on": "eval:doc.ignore_insurance!=\"Yes\"\r\n",
    "fieldname": "value_of_shipment_section",
    "fieldtype": "Section Break",
    "label": "Value Of Shipment"
@@ -482,21 +520,115 @@
   {
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "sales_invoice",
-   "options": "Sales Invoice"
+   "options": "Sales Invoice",
+   "read_only": 1
   },
   {
    "fieldname": "print_qr_code",
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Print QR Code"
+  },
+  {
+   "fieldname": "cons_and_dispatch_no",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Cons and Dispatch",
+   "options": "Cons and Dispatch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "manifest_order_no",
+   "fieldtype": "Link",
+   "label": "Manifest Order",
+   "options": "Manifest Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "custom_cal_staff_delivery",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "CAL Staff Delivery"
+  },
+  {
+   "fieldname": "custom_delivered_to_customer_date",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Delivered To Customer Date"
+  },
+  {
+   "fieldname": "insurance_section",
+   "fieldtype": "Section Break",
+   "label": "Insurance"
+  },
+  {
+   "fieldname": "ignore_insurance",
+   "fieldtype": "Select",
+   "label": "Ignore Insurance",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_oylf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "shipment_check",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Shipment_check"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_mismatched",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Mismatched"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_sales_invoice_paid",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "is_sales_invoice_paid"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_destination_branch_flag",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "is_destination_branch_flag"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-07-14 18:02:58.176889",
- "modified_by": "niranjan.ks@anantdv.com",
+ "links": [
+  {
+   "group": "Manifest Order",
+   "link_doctype": "Manifest Order",
+   "link_fieldname": "cal_awb"
+  },
+  {
+   "group": "Cons and Dispatch",
+   "link_doctype": "Cons and Dispatch",
+   "link_fieldname": "awb"
+  },
+  {
+   "group": "Tracking",
+   "link_doctype": "Tracking",
+   "link_fieldname": "consignment_note"
+  }
+ ],
+ "modified": "2025-11-07 11:59:45.592762",
+ "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Consignment Note",
  "naming_rule": "Expression (old style)",

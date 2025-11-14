@@ -8,6 +8,7 @@
  "field_order": [
   "manifest_order_section",
   "date",
+  "cons_and_dispatch_no",
   "qr_code",
   "branch_flag",
   "is_on_hold",
@@ -23,6 +24,7 @@
   "shipment_details",
   "total_weight",
   "total_no_of_pieces",
+  "pieces_hold_status",
   "section_break_cgvz",
   "prepared_by",
   "signature",
@@ -217,13 +219,28 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Airline AWB Number"
+  },
+  {
+   "fieldname": "cons_and_dispatch_no",
+   "fieldtype": "Link",
+   "label": "Cons and Dispatch No",
+   "options": "Cons and Dispatch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pieces_hold_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Pieces Hold Status",
+   "options": "\nPartially on hold"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-25 13:17:00.969720",
- "modified_by": "sharda.k@anantdv.com",
+ "modified": "2025-11-03 09:15:49.773201",
+ "modified_by": "niranjan.ks@anantdv.com",
  "module": "Shipping",
  "name": "Manifest Order",
  "naming_rule": "Expression (old style)",

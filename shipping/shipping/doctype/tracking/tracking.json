@@ -17,7 +17,8 @@
    "fieldname": "consignment_note",
    "fieldtype": "Link",
    "label": "Consignment Note",
-   "options": "Consignment Note"
+   "options": "Consignment Note",
+   "unique": 1
   },
   {
    "fieldname": "column_break_aw94",
@@ -43,8 +44,8 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 15:23:16.710666",
- "modified_by": "Administrator",
+ "modified": "2025-09-25 18:54:11.901580",
+ "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Tracking",
  "naming_rule": "Random",

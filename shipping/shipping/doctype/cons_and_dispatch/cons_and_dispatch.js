@@ -844,9 +844,9 @@ function setUserName(frm) {
             userLocation = r.message.location || null;
             console.log("Locationnnnnnnn", userLocation);
             
-            if(frm.doc.date && frm.doc.dispatch_item.length === 0) {
-                loadConsignmentNotes(frm);
-            }
+            // if(frm.doc.date && frm.doc.dispatch_item.length === 0) {
+            //     loadConsignmentNotes(frm);
+            // }
            
             
         }
@@ -855,9 +855,9 @@ function setUserName(frm) {
 
 function loadConsignmentNotes(frm) {
     // Store current dispatch and airline values before clearing the table
-    
- 
-    
+
+
+    console.log("consignment notes")
     let savedValues = {};
     if (frm.doc.dispatch_item && frm.doc.dispatch_item.length > 0) {
         frm.doc.dispatch_item.forEach(item => {
@@ -880,79 +880,291 @@ function loadConsignmentNotes(frm) {
     }
 
     // Fetch only proper Consignment Notes with dispatch_flag = false
-    frappe.call({
-        method: "frappe.client.get_list",
-        args: {
-            doctype: "Consignment Note",
-            filters: {
-                'dispatch_flag': 0,
-                'origin': userLocation,
-                'workflow_state': "Verified Weight/Dimension"
-            },
-            fields: ['name', 'origin', 'destination' ,'branch_flag', 'total_weight', 'total_number_of_pieces', 'workflow_state'],
-            // fields:['*'],
-            limit_page_length: 500
-        },
-        callback: function(r) {
-            console.log("Fetched consignment notes:", r);
+    // frappe.call({
+    //     method: "frappe.client.get_list",
+    //     args: {
+    //         doctype: "Consignment Note",
+    //         filters: {
+    //             'dispatch_flag': 0,
+    //             'origin': userLocation,
+    //             // 'workflow_state': "Verified Weight/Dimension"
+    //             'workflow_state': ['in', ["Verified Weight/Dimension", "Payment Received and Issued Invoice"]],
+    //             // 'status': ['!=', 'Cancelled']
+    //             'status': ['not in', ['Cancelled', 'Unconsolidation']]
+    //         },
+    //         fields: ['name', 'origin', 'destination' ,'branch_flag', 'total_weight', 'total_number_of_pieces', 'workflow_state'],
+    //         // fields:['*'],
+    //         limit_page_length: 1000
+    //     },
+    //     callback: function(r) {
+    //         console.log("Fetched consignment notes:", r);
             
-            // Create an array of promises for all the get_doc calls
-            let promises = [];
+    //         // Create an array of promises for all the get_doc calls
+    //         let promises = [];
             
-            if (r.message && r.message.length > 0) {
-                r.message.forEach(item => {
-                    // Only process items that start with "CAL-" (valid consignment notes)
-                    if (item.name && item.name.startsWith("CAL-")) {
-                        let promise = frappe.db.get_doc("Consignment Note", item.name).then((val) => {
-                            let no_of_pieces = 0;
-                            let total_length = 0;
-                            let total_width = 0;
-                            let total_height = 0;
+    //         if (r.message && r.message.length > 0) {
+    //             console.log("message", r.message)
+    //             r.message.forEach(item => {
+    //                 // Only process items that start with "CAL-" (valid consignment notes)
+    //                 if (item.name && item.name.startsWith("CAL-")) {
+    //                     let promise = frappe.db.get_doc("Consignment Note", item.name).then((val) => {
+    //                         let no_of_pieces = 0;
+    //                         let total_length = 0;
+    //                         let total_width = 0;
+    //                         let total_height = 0;
                             
-                            for(let i = 0; i < val.check_shipment_details.length; i++) {
-                                no_of_pieces += parseFloat(val.check_shipment_details[i].pieces_no || 0);
-                                total_length += parseFloat(val.check_shipment_details[i]?.lengthcm || 0);
-                                total_width += parseFloat(val.check_shipment_details[i].widthcm || 0);
-                                total_height += parseFloat(val.check_shipment_details[i].heightcm || 0);
-                            }
+    //                         for(let i = 0; i < val.check_shipment_details.length; i++) {
+    //                             no_of_pieces += parseFloat(val.check_shipment_details[i].pieces_no || 0);
+    //                             total_length += parseFloat(val.check_shipment_details[i]?.lengthcm || 0);
+    //                             total_width += parseFloat(val.check_shipment_details[i].widthcm || 0);
+    //                             total_height += parseFloat(val.check_shipment_details[i].heightcm || 0);
+    //                         }
                             
-                            // Restore saved values if they existed before
-                            let savedItem = savedValues[item.name] || {};
+    //                         // Restore saved values if they existed before
+    //                         let savedItem = savedValues[item.name] || {};
                             
-                            frm.add_child('dispatch_item', {
-                                branch_flag: item.branch_flag,
-                                awb: item.name,
-                                origin: item.origin,
-                                destination: item.destination,
-                                net_weight: item.total_weight,
-                                length: total_length,
-                                width: total_width,
-                                height: total_height,
-                                no_of_pieces: no_of_pieces,
-                                dispatch: savedItem.dispatch ,
-                                airline_name: savedItem.airline_name || null
-                            });
-                        });
+    //                         frm.add_child('dispatch_item', {
+    //                             branch_flag: item.branch_flag,
+    //                             awb: item.name,
+    //                             origin: item.origin,
+    //                             destination: item.destination,
+    //                             net_weight: item.total_weight,
+    //                             length: total_length,
+    //                             width: total_width,
+    //                             height: total_height,
+    //                             no_of_pieces: no_of_pieces,
+    //                             dispatch: savedItem.dispatch ,
+    //                             airline_name: savedItem.airline_name || null
+    //                         });
+    //                     });
                         
-                        promises.push(promise);
+    //                     promises.push(promise);
+    //                 }
+    //             });
+    //         }
+            
+    //         // Wait for all promises to resolve before refreshing the field
+    //         Promise.all(promises).then(() => {
+    //             frm.refresh_field("dispatch_item");
+                
+    //             // We're removing this call as it's the source of the junk data
+    //             // loadPendingItems(frm, savedValues);
+    //         }).catch(err => {
+    //             console.error("Error loading consignment notes:", err);
+    //             frm.refresh_field("dispatch_item");
+    //         });
+    //     }
+    // });
+    
+    // frappe.call({
+    //     method: "shipping.shipping.doctype.cons_and_dispatch.cons_and_dispatch.get_consignment_notes",
+    //     args: {
+    //         userLocation: userLocation,
+    //     },
+    //     callback: function(r) {
+    //         console.log("Fetched consignment notes:", r);
+    //         let promises = [];
+    //         if (r.message && r.message.length > 0) {
+    //             console.log("message", r)
+    //             r.message.forEach(item => {
+    //                 // Only process items that start with "CAL-" (valid consignment notes)
+    //                 if (item.name && item.name.startsWith("CAL-")) {
+    //                     let promise = frappe.db.get_doc("Consignment Note", item.name).then((val) => {
+    //                         let no_of_pieces = 0;
+    //                         let total_length = 0;
+    //                         let total_width = 0;
+    //                         let total_height = 0;
+                            
+    //                         for(let i = 0; i < val.check_shipment_details.length; i++) {
+    //                             no_of_pieces += parseFloat(val.check_shipment_details[i].pieces_no || 0);
+    //                             total_length += parseFloat(val.check_shipment_details[i]?.lengthcm || 0);
+    //                             total_width += parseFloat(val.check_shipment_details[i].widthcm || 0);
+    //                             total_height += parseFloat(val.check_shipment_details[i].heightcm || 0);
+    //                         }
+                            
+    //                         // Restore saved values if they existed before
+    //                         let savedItem = savedValues[item.name] || {};
+                            
+    //                         frm.add_child('dispatch_item', {
+    //                             branch_flag: item.branch_flag,
+    //                             awb: item.name,
+    //                             origin: item.origin,
+    //                             destination: item.destination,
+    //                             net_weight: item.total_weight,
+    //                             length: total_length,
+    //                             width: total_width,
+    //                             height: total_height,
+    //                             no_of_pieces: no_of_pieces,
+    //                             dispatch: savedItem.dispatch ,
+    //                             airline_name: savedItem.airline_name || null
+    //                         });
+    //                     });
+                        
+    //                     // promises.push(promise);
+    //                     frm.refresh_field("dispatch_item");
+    //                 }
+    //             });
+    //         }
+            
+    //         // Wait for all promises to resolve before refreshing the field
+    //         // Promise.all(promises).then(() => {
+    //         //     frm.refresh_field("dispatch_item");
+                
+    //         //     // We're removing this call as it's the source of the junk data
+    //         //     // loadPendingItems(frm, savedValues);
+    //         // }).catch(err => {
+    //         //     console.error("Error loading consignment notes:", err);
+    //         //     frm.refresh_field("dispatch_item");
+    //         // });
+    //     }
+    // });
+    // frappe.call({
+    // method: "shipping.shipping.doctype.cons_and_dispatch.cons_and_dispatch.get_consignment_notes",
+    // args: {
+    //     userLocation: userLocation,
+    // },
+    // callback: function (r) {
+    //     let promises = [];
+    //     let valid_items = [];
+
+    //     if (r.message && r.message.length > 0) {
+            
+    //         r.message.forEach(item => {
+    //             if (item.name && item.name.startsWith("CAL-")) valid_items.push(item)
+    //         });
+    //         if (valid_items.length === 0) return;
+
+    //         showProgressBar(frm); 
+
+            
+    //         valid_items.forEach((item, idx) => {
+    //             let promise = frappe.db.get_doc("Consignment Note", item.name).then((val) => {
+    //                 let no_of_pieces = 0, total_length = 0, total_width = 0, total_height = 0;
+    //                 for (let i = 0; i < val.check_shipment_details.length; i++) {
+    //                     no_of_pieces += parseFloat(val.check_shipment_details[i].pieces_no || 0);
+    //                     total_length += parseFloat(val.check_shipment_details[i]?.lengthcm || 0);
+    //                     total_width += parseFloat(val.check_shipment_details[i].widthcm || 0);
+    //                     total_height += parseFloat(val.check_shipment_details[i].heightcm || 0);
+    //                 }
+    //                 let savedItem = savedValues[item.name] || {};
+    //                 frm.add_child('dispatch_item', {
+    //                     branch_flag: item.branch_flag,
+    //                     awb: item.name,
+    //                     origin: item.origin,
+    //                     destination: item.destination,
+    //                     net_weight: item.total_weight,
+    //                     length: total_length,
+    //                     width: total_width,
+    //                     height: total_height,
+    //                     no_of_pieces: no_of_pieces,
+    //                     dispatch: savedItem.dispatch,
+    //                     airline_name: savedItem.airline_name || null
+    //                 });
+
+                    
+    //                 let percent_complete = Math.round(((idx + 1) / valid_items.length) * 100);
+    //                 updateProgressBar(percent_complete);
+    //             });
+    //             promises.push(promise);
+    //         });
+    //         Promise.all(promises).then(() => {
+    //             frm.refresh_field("dispatch_item");
+    //         });
+    //     }
+    //     }
+    // });
+    frappe.call({
+    method: "shipping.shipping.doctype.cons_and_dispatch.cons_and_dispatch.get_consignment_notes",
+    args: {
+        userLocation: userLocation,
+    },
+    callback: function(r) {
+        let promises = [];
+        let valid_items = [];
+
+        if (r.message && r.message.length > 0) {
+            r.message.forEach(item => {
+                if (item.name && item.name.startsWith("CAL-")) valid_items.push(item);
+            });
+            if (valid_items.length === 0) return;
+
+            let totalItems = valid_items.length;
+
+            valid_items.forEach((item, idx) => {
+                let promise = frappe.db.get_doc("Consignment Note", item.name).then(val => {
+                    let no_of_pieces = 0, total_length = 0, total_width = 0, total_height = 0;
+                    for (let i = 0; i < val.check_shipment_details.length; i++) {
+                        no_of_pieces += parseFloat(val.check_shipment_details[i].pieces_no || 0);
+                        total_length += parseFloat(val.check_shipment_details[i]?.lengthcm || 0);
+                        total_width += parseFloat(val.check_shipment_details[i].widthcm || 0);
+                        total_height += parseFloat(val.check_shipment_details[i].heightcm || 0);
+                    }
+
+                    let savedItem = savedValues[item.name] || {};
+                    frm.add_child('dispatch_item', {
+                        branch_flag: item.branch_flag,
+                        awb: item.name,
+                        origin: item.origin,
+                        destination: item.destination,
+                        net_weight: item.total_weight,
+                        length: total_length,
+                        width: total_width,
+                        height: total_height,
+                        no_of_pieces: no_of_pieces,
+                        dispatch: savedItem.dispatch,
+                        airline_name: savedItem.airline_name || null
+                    });
+
+                    frappe.show_progress(
+                        'Loading Consignments',
+                        idx + 1,
+                        totalItems,
+                        `Processing item ${idx + 1} of ${totalItems}`
+                    );
+
+                    if ((idx + 1) === totalItems) {
+                        frm.refresh_field("dispatch_item");
                     }
                 });
-            }
-            
-            // Wait for all promises to resolve before refreshing the field
-            Promise.all(promises).then(() => {
-                frm.refresh_field("dispatch_item");
-                
-                // We're removing this call as it's the source of the junk data
-                // loadPendingItems(frm, savedValues);
-            }).catch(err => {
-                console.error("Error loading consignment notes:", err);
+
+                promises.push(promise);
+            });
+
+            Promise.all(promises).catch(e => {
+                console.error('Error processing consignment notes', e);
                 frm.refresh_field("dispatch_item");
             });
         }
-    });
+    }
+});
 }
+//////////////////////////////////////////////
 
+// function showProgressBar(frm) {
+//     if (!document.getElementById('consignment-progress-bar')) {
+//         let barContainer = document.createElement('div');
+//         barContainer.id = "consignment-progress-bar-container";
+//         barContainer.style = "margin:10px 0;height:24px;width:300px;background:#e0e0e0;border-radius:12px;overflow:hidden;";
+
+//         let bar = document.createElement('div');
+//         bar.id = "consignment-progress-bar";
+//         bar.style = "height:100%;width:0;background:#47a076;transition:width 0.3s;text-align:center;color:#fff;line-height:24px;font-size:14px;";
+
+//         barContainer.appendChild(bar);
+
+//         // Attach this above the field you'd like, here using the wrapper of the form's main container
+//         frm.fields_dict.dispatch_item.grid.wrapper.prepend(barContainer);
+//     }
+// }
+// function updateProgressBar(percent) {
+//     let bar = document.getElementById('consignment-progress-bar');
+//     if (bar) {
+//         bar.style.width = percent + "%";
+//         bar.innerText = percent + "%";
+//         if (percent >= 100) setTimeout(() => bar.parentNode.remove(), 500); // Optional: remove after completion
+//     }
+// }
+///////////////////////////////////////////////
 // Removed loadPendingItems function as it's the source of the junk data
 
 // Then define the form event handlers
@@ -963,15 +1175,16 @@ frappe.ui.form.on('Cons and Dispatch', {
     },
    
     refresh: function(frm) {
+        
         // Set username on every refresh if not already set
         let manifest_flag = true;
         if (!frm.doc.name1) {
             setUserName(frm);
         }
         
-        if(frm.doc.workflow_state == "Approved") {
+        // if(frm.doc.workflow_state == "Approved") {
             // createManifestOrders(frm);
-        }
+        // }
         
         if(frm.doc.workflow_state=="Manifest Order Generated"){
             frm.add_custom_button(__('Go to Manifest Order'), function() {
@@ -986,7 +1199,7 @@ frappe.ui.form.on('Cons and Dispatch', {
         const selected_date = frm.doc.date;
         const today = frappe.datetime.get_today();
         
-        console.log("helooooooo kemchooo", today)
+        // console.log("helooooooo kemchooo", today)
 
 
         if (selected_date > today) {

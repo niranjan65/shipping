@@ -11,7 +11,9 @@
   "lengthcm",
   "widthcm",
   "heightcm",
-  "image_url"
+  "image_url",
+  "get_weight",
+  "weight"
  ],
  "fields": [
   {
@@ -52,18 +54,34 @@
    "fieldname": "image_url",
    "fieldtype": "Attach Image",
    "label": "Image Url"
+  },
+  {
+   "depends_on": "eval:parent.doctype !== 'Quotation'\r\n",
+   "fieldname": "get_weight",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Get Weight"
+  },
+  {
+   "depends_on": "eval:parent.doctype !== 'Quotation'\r\n",
+   "fieldname": "weight",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Weight"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-03 16:57:32.534348",
- "modified_by": "Administrator",
+ "modified": "2025-11-07 13:11:57.404633",
+ "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Shipment_item",
  "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

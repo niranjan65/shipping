@@ -1,6 +1,27 @@
 {
- "charts": [],
- "content": "[{\"id\":\"hJ2bYcwHB5\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Shipping</span>\",\"col\":12}},{\"id\":\"-NL0zLSpou\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Numbers</span>\",\"col\":12}},{\"id\":\"Lf4gSmNBrs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Shipments\",\"col\":3}},{\"id\":\"EqYkGrS9NP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Shipments\",\"col\":3}},{\"id\":\"g7L3VwM45K\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Billed Amount\",\"col\":3}},{\"id\":\"0zjjnAUjxB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Billed Amount\",\"col\":3}},{\"id\":\"jaSwJMcQW4\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Shortcuts</span>\",\"col\":12}},{\"id\":\"uhwQxeIvrV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Connote List\",\"col\":3}},{\"id\":\"bNKn-O18uG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Connote\",\"col\":3}},{\"id\":\"jeso8hcI3C\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Manifest List\",\"col\":3}},{\"id\":\"RCuo7wSzGv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Consolidation\",\"col\":3}},{\"id\":\"LMCbdmdnlc\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Dashboard</b></span>\",\"col\":12}},{\"id\":\"RLHIwEL2GJ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Connote\",\"col\":6}},{\"id\":\"DPkzXv7E2-\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Manifest\",\"col\":6}},{\"id\":\"s4dj63ysdj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Invoices\",\"col\":12}}]",
+ "charts": [
+  {
+   "chart_name": "Top 10 CSO",
+   "label": "Top 10 CSO"
+  },
+  {
+   "chart_name": "Top 10 Performing Destination Airports",
+   "label": "Top 10 Performing Destination Airports"
+  },
+  {
+   "chart_name": "Top 10 Performing Origin Branches",
+   "label": "Top 10 Performing Origin Branches"
+  },
+  {
+   "chart_name": "Top 10 Assigned To",
+   "label": "Top 10 Assigned To"
+  },
+  {
+   "chart_name": "Top 10 Corporate Customers Data",
+   "label": "Top 10 Corporate Customers"
+  }
+ ],
+ "content": "[{\"id\":\"hJ2bYcwHB5\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Shipping</span>\",\"col\":12}},{\"id\":\"-NL0zLSpou\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Numbers</span>\",\"col\":12}},{\"id\":\"Lf4gSmNBrs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Shipments\",\"col\":3}},{\"id\":\"EqYkGrS9NP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Shipments\",\"col\":3}},{\"id\":\"g7L3VwM45K\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Billed Amount\",\"col\":3}},{\"id\":\"0zjjnAUjxB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Billed Amount\",\"col\":3}},{\"id\":\"jaSwJMcQW4\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Shortcuts</span>\",\"col\":12}},{\"id\":\"uhwQxeIvrV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Connote List\",\"col\":3}},{\"id\":\"bNKn-O18uG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Connote\",\"col\":3}},{\"id\":\"jeso8hcI3C\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Manifest List\",\"col\":3}},{\"id\":\"RCuo7wSzGv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Consolidation\",\"col\":3}},{\"id\":\"LMCbdmdnlc\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Dashboard</b></span>\",\"col\":12}},{\"id\":\"Rsgyajb5aO\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Top 10 CSO\",\"col\":12}},{\"id\":\"FXKsnxEA66\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Top 10 Performing Destination Airports\",\"col\":12}},{\"id\":\"8Hi6VHgvzZ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Top 10 Performing Origin Branches\",\"col\":12}},{\"id\":\"QdRD3_PdC4\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Top 10 Assigned To\",\"col\":12}},{\"id\":\"TTnqOv1FXx\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Top 10 Corporate Customers\",\"col\":12}}]",
  "creation": "2025-02-06 11:43:31.970819",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,15 +33,6 @@
  "is_hidden": 0,
  "label": "Shipping",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Docs",
-   "link_count": 0,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -50,19 +62,10 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "dummy",
-   "link_count": 0,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   }
  ],
- "modified": "2025-06-25 15:42:21.832360",
- "modified_by": "sharda.k@anantdv.com",
+ "modified": "2025-09-04 16:46:53.465459",
+ "modified_by": "biswajit@anantdv.com",
  "module": "Shipping",
  "name": "Shipping",
  "number_cards": [
