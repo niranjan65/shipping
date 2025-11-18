@@ -350,6 +350,8 @@ def make_invoice(data):
         "shipping_address": data.get("address"),
         "shipping_city":data.get("shipping_city"),
         "consignment_note":data.get("name"),
+        "custom_actual_weight":data.get("custom_actual_weight"),
+        "custom_volumetric_weight":data.get("custom_volumetric_weight"),
 
     })
     origin_dest_code = frappe.db.get_value(

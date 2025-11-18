@@ -177,8 +177,8 @@ frappe.ui.form.on('Consignment Note', {
     frm.set_value('total_weight', parseFloat(finalWeight).toFixed(2));
     frm.set_value('total_number_of_pieces', totalPieces);
 
-	//  frm.set_value('custom_actual_weight', parseFloat(totalActualWeight).toFixed(2));
-    // frm.set_value('custom_volumetric_weight', parseFloat(totalVolumetricWeight).toFixed(2));
+	 frm.set_value('custom_actual_weight', parseFloat(totalActualWeight).toFixed(2));
+    frm.set_value('custom_volumetric_weight', parseFloat(totalVolumetricWeight).toFixed(2));
 
 };
         // frm.calculate_total_weight = function () {

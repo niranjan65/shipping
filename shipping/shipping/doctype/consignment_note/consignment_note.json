@@ -75,6 +75,8 @@
   "total_number_of_pieces",
   "total_weight",
   "total_value",
+  "custom_actual_weight",
+  "custom_volumetric_weight",
   "additional_information",
   "shippers_agreement",
   "wei_agree_to_all_the_terms_and_conditions_of_ca_logistic",
@@ -606,6 +608,18 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "is_destination_branch_flag"
+  },
+  {
+   "fieldname": "custom_actual_weight",
+   "fieldtype": "Float",
+   "label": "Actual Weight",
+   "read_only": 1
+  },
+  {
+   "fieldname": "custom_volumetric_weight",
+   "fieldtype": "Float",
+   "label": "Volumetric Weight",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -627,7 +641,7 @@
    "link_fieldname": "consignment_note"
   }
  ],
- "modified": "2025-11-07 11:59:45.592762",
+ "modified": "2025-11-17 18:30:15.830571",
  "modified_by": "dipanwita.d@anantdv.com",
  "module": "Shipping",
  "name": "Consignment Note",
